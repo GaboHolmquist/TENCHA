@@ -1,3 +1,9 @@
 nombre=Kabocha Latte
 precio=4800
-descripcion=Matcha, Leche Entera o Vegetal.
+descripcion=Llegó nuestro Kabocha Latte, una bebida inspirada en Halloween que preparamos con mucho cariño para acompañarte esta temporada. 🍵☕️
+Ingredientes:
+• Syrup de Kabocha (Calabaza) receta original de Tencha
+• Matcha o Café
+• Leche o bebida vegetal
+• Crema chantilly
+• Canela

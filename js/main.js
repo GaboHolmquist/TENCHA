@@ -12,8 +12,28 @@ const nameBlock = (es, sub, jp) =>
 // Normaliza texto (sin tildes ni mayúsculas) para comparar nombres
 const norm = (s = '') => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
 
-// Caché en memoria de imágenes decodificadas para que el cambio entre globos sea instantáneo y sin parpadeo
+// Caché en memoria de imágenes y del video de recomendado 1 para que se abra de forma inmediata
 const imgCache = new Map();
+const videoCache = new Map();
+
+function preloadVideo(url) {
+  if (videoCache.has(url)) return;
+  const v = document.createElement('video');
+  Object.assign(v, {
+    autoplay: true,
+    loop: true,
+    muted: true,
+    playsInline: true,
+    preload: 'auto',
+    className: 'media-fill'
+  });
+  v.setAttribute('muted', '');
+  v.setAttribute('playsinline', '');
+  v.src = url;
+  v.load();
+  videoCache.set(url, v);
+}
+
 function preloadItemMedia(item) {
   if (!item) return;
   const bases = [item.base, item.fallbackBase].filter(Boolean);
@@ -41,6 +61,7 @@ function mediaImg(src, item, alt, highPriority = false) {
   });
   const img = new Image();
   img.className = 'media-fill';
+  img.draggable = false;
   img.alt = alt || item.nombre;
   img.decoding = 'async';
   img.loading = 'eager';
@@ -114,6 +135,11 @@ async function loadRecomendados() {
 
 function renderCarousel(list) {
   const car = $('carousel'), dots = $('carouselDots');
+  // Precarga en memoria únicamente el video del recomendado 1 para que al abrir el globo aparezca directo el video sin pasar por la imagen
+  if (list[0]) {
+    list[0].hasVideo = true;
+    preloadVideo(list[0].base + 'animacion.mp4');
+  }
   list.forEach((item, idx) => {
     const s = document.createElement('div');
     s.className = 'slide';
@@ -245,34 +271,20 @@ function buildSlideMedia(item) {
   const slide = document.createElement('div');
   slide.className = 'popup-slide';
   const bases = [item.base, item.fallbackBase].filter(Boolean);
-  slide.appendChild(mediaImg(bases[0] + 'foto.webp', item, item.nombre, true));
 
-  // Prueba GIF y luego MP4 en la carpeta propia y, si no existe, en la carpeta del producto del menú
-  const candidates = [];
-  bases.forEach((b) => {
-    candidates.push({ type: 'gif', src: b + 'animacion.gif' });
-    candidates.push({ type: 'mp4', src: b + 'animacion.mp4' });
-  });
-
-  const tryNext = (idx) => {
-    if (idx >= candidates.length) return;
-    const c = candidates[idx];
-    if (c.type === 'gif') {
-      const gif = new Image();
-      gif.className = 'media-fill';
-      gif.alt = item.nombre;
-      gif.onload = () => slide.replaceChildren(gif);
-      gif.onerror = () => tryNext(idx + 1);
-      gif.src = c.src;
-    } else {
-      const v = document.createElement('video');
-      Object.assign(v, { autoplay: true, loop: true, muted: true, playsInline: true, className: 'media-fill' });
-      v.onloadeddata = () => slide.replaceChildren(v);
-      v.onerror = () => tryNext(idx + 1);
-      v.src = c.src;
+  // Si es el recomendado 1 con video precargado, inserta directamente el video sin mostrar antes la foto
+  if (item.hasVideo) {
+    const videoUrl = item.base + 'animacion.mp4';
+    const cachedVideo = videoCache.get(videoUrl);
+    if (cachedVideo) {
+      cachedVideo.currentTime = 0;
+      slide.appendChild(cachedVideo);
+      cachedVideo.play().catch(() => {});
+      return slide;
     }
-  };
-  tryNext(0);
+  }
+
+  slide.appendChild(mediaImg(bases[0] + 'foto.webp', item, item.nombre, true));
   return slide;
 }
 
@@ -399,6 +411,12 @@ async function init() {
   const hash = location.hash.slice(1);
   if (hash && state.cats.some((c) => c.id === hash)) goToCategory(hash);
   initHeavyScroll();
+
+  // Bloquea clic derecho / pulsación larga y arrastrar imágenes o videos
+  document.addEventListener('contextmenu', (e) => {
+    if (e.target.closest('img, video, .slide, .cat-card, .item-card, .popup')) e.preventDefault();
+  });
+  document.addEventListener('dragstart', (e) => e.preventDefault());
 }
 
 // ---------- Scroll con 5% de fricción (sin rebotes) ----------
