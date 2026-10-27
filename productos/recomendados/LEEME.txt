@@ -1,0 +1,14 @@
+RECOMENDADOS (carrusel de arriba) - cambia según temporada
+
+En cada carpeta (1, 2 y 3) basta con editar info.txt:
+
+OPCIÓN A — Producto que ya existe en la carta (automático):
+  Escribe solo el nombre del producto en info.txt, por ejemplo:
+    Ube Matcha Latte
+  La página buscará automáticamente su foto, su GIF, su precio, su descripción, su kanji y sus etiquetas de frío/caliente desde la carpeta del producto en la carta. No necesitas copiar la foto ni el GIF aquí (a menos que quieras usar una foto especial solo para el carrusel).
+
+OPCIÓN B — Producto especial de temporada que NO está en la carta:
+  Pon foto.jpg y animacion.gif en la carpeta y escribe en info.txt:
+    nombre=Kabocha Latte
+    precio=5200
+    descripcion=Texto opcional

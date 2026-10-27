@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Carta | Tencha Matcheria</title>
+  <meta name="description" content="Carta digital de Tencha Matcheria: matcha puro, creaciones de matcha, café de especialidad, sandos y yakigashi.">
+  <meta name="theme-color" content="#09090b">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <a href="#" class="brand" id="brandLink"><span class="brand-name">TENCHA</span><span class="brand-sub">MATCHERIA</span></a>
+  </header>
+
+  <main>
+    <!-- Hero: carrusel de 3 destacados -->
+    <section class="hero" aria-labelledby="recTitle">
+      <h2 class="rec-title" id="recTitle">Recomendados</h2>
+      <div class="carousel" id="carousel"></div>
+      <div class="dots" id="carouselDots"></div>
+    </section>
+
+    <!-- Categorías -->
+    <section class="section" id="categoriasSection">
+      <h1 class="title">Nuestra Carta<span class="title-jp jp">お品書き</span></h1>
+      <p class="subtitle">Elige una categoría</p>
+      <div class="cat-grid" id="catGrid"></div>
+    </section>
+
+    <!-- Lista completa (se despliega al elegir categoría) -->
+    <section class="section menu-list" id="menuList" hidden>
+      <nav class="cat-bar" id="catBar" aria-label="Categorías"></nav>
+      <div id="menuSections"></div>
+    </section>
+  </main>
+
+  <footer class="footer"><a href="https://www.instagram.com/kori.films/" target="_blank" rel="noopener noreferrer">Carta Digital por <span>KORI.FILMS</span></a></footer>
+
+  <!-- Ventana flotante del producto -->
+  <dialog class="popup" id="productPopup">
+    <div class="popup-card" id="popupCard">
+      <button class="popup-close" id="popupClose" aria-label="Cerrar">✕</button>
+      <div class="popup-media-wrap">
+        <div class="popup-media" id="popupMedia"></div>
+        <div class="popup-tags" id="popupTags"></div>
+      </div>
+      <div class="popup-body" id="popupBody">
+        <div class="popup-row">
+          <h2 class="popup-head" id="popupHead"></h2>
+          <p class="popup-price" id="popupPrice"></p>
+        </div>
+        <p class="popup-desc" id="popupDesc"></p>
+        <button class="popup-more" id="popupMore" hidden>Leer más</button>
+        <div class="popup-variants" id="popupVariants"></div>
+      </div>
+      <div class="popup-nav">
+        <button id="popupPrev" aria-label="Anterior">‹</button>
+        <button id="popupNext" aria-label="Siguiente">›</button>
+      </div>
+    </div>
+  </dialog>
+
+  <script src="js/main.js"></script>
+</body>
+</html>

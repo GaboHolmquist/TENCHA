@@ -1,0 +1,3 @@
+nombre=Ube Matcha Latte
+precio=5200
+descripcion=Combinación perfecta con el tubérculo dulce y avainillado. (Ube, Matcha, Leche Entera o Vegetal)

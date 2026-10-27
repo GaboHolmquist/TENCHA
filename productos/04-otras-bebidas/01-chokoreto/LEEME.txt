@@ -1,0 +1,5 @@
+Chokorēto - $4800
+
+Agrega aqui:
+  foto.jpg       -> foto de la tarjeta (cuadrada)
+  animacion.gif  -> GIF de 3 tomas para la ventana flotante (o animacion.mp4)

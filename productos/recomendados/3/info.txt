@@ -1,0 +1,3 @@
+nombre=Yuzu Coco
+precio=5500
+descripcion=Matcha, Leche de Coco y Yuzu.

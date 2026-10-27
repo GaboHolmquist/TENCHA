@@ -1,0 +1,3 @@
+nombre=Tradicional Matcha Latte
+precio=4800
+descripcion=Matcha, Leche Entera o Vegetal.
