@@ -224,7 +224,7 @@ body, .slide, .cat-card, .item-card, .popup-card {
 .popup[open] { display: flex; }
 
 /* Ajustes v3: texto más pegado, flechas sin círculo, bloqueo de scroll */
-html.lock, html.lock body { overflow: hidden; overscroll-behavior: none; }
+html.lock { overflow: hidden; overscroll-behavior: none; }
 .popup-body { padding: 14px 22px 0; }
 .popup-head .name-jp { margin-top: 1px; }
 .popup-tags { margin: 0 0 6px; min-height: 0; }

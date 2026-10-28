@@ -312,6 +312,24 @@
           "descripcion": "",
           "jp": "ジュース",
           "sub": ""
+        },
+        {
+          "carpeta": "07-kohi",
+          "nombre": "Kohi",
+          "precio": 3900,
+          "tags": [],
+          "descripcion": "",
+          "jp": "コーヒー",
+          "sub": ""
+        },
+        {
+          "carpeta": "08-ginger",
+          "nombre": "Ginger",
+          "precio": 3500,
+          "tags": [],
+          "descripcion": "Opciones: Chai y Original.",
+          "jp": "ジンジャー",
+          "sub": "Chai u Original"
         }
       ]
     },
@@ -438,6 +456,15 @@
           "tags": [],
           "descripcion": "",
           "jp": "カヌレ",
+          "sub": ""
+        },
+        {
+          "carpeta": "08-conchocolates",
+          "nombre": "Conchocolate",
+          "precio": 8900,
+          "tags": [],
+          "descripcion": "",
+          "jp": "チョコレート",
           "sub": ""
         }
       ]

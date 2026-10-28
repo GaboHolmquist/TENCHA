@@ -355,7 +355,12 @@ function openItem(idx, list = state.items, dir = 0) {
     wirePopupCardButtons(currentCard, dlg);
   }
 
-  if (!dlg.open) { dlg.showModal(); document.documentElement.classList.add('lock'); }
+  if (!dlg.open) {
+    state.savedScrollY = window.scrollY;
+    document.documentElement.classList.add('lock');
+    dlg.showModal();
+    window.scrollTo(0, state.savedScrollY);
+  }
 }
 
 function navigate(step) {
@@ -365,8 +370,13 @@ function navigate(step) {
 
 function initPopup() {
   const dlg = $('productPopup');
-  // Bloquea el scroll de la página detrás del popup
-  dlg.addEventListener('close', () => document.documentElement.classList.remove('lock'));
+  // Bloquea el scroll de la página detrás del popup y conserva la posición exacta al cerrar
+  dlg.addEventListener('close', () => {
+    const y = state.savedScrollY ?? window.scrollY;
+    document.documentElement.classList.remove('lock');
+    window.scrollTo(0, y);
+    requestAnimationFrame(() => window.scrollTo(0, y));
+  });
   dlg.addEventListener('click', (e) => { if (e.target === dlg) dlg.close(); });
   document.addEventListener('keydown', (e) => {
     if (!dlg.open) return;
