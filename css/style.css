@@ -287,7 +287,8 @@ body { background-image: radial-gradient(70rem 45rem at 50% -15%, rgba(214, 180,
   background: transparent;
   border: 0;
   overflow: visible;
-  position: relative;
+  position: fixed;
+  inset: 0;
   scrollbar-width: none;
 }
 .popup::-webkit-scrollbar { display: none; }
