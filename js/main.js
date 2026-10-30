@@ -134,7 +134,39 @@ function syncItemTags(item) {
 }
 
 // ---------- Carrusel (productos/recomendados o data/menu.json) ----------
-function resolveRecVideo(rec, base, match) {
+function parseFolderMeta(rawCarpeta = '', catCarpeta = '') {
+  let raw = String(rawCarpeta || '').trim();
+  let forceVideo = null;
+  if (raw.endsWith('#video')) {
+    forceVideo = true;
+    raw = raw.slice(0, -6);
+  } else if (raw.endsWith('#novideo')) {
+    forceVideo = false;
+    raw = raw.slice(0, -8);
+  }
+  const isRemote = /^https?:\/\//i.test(raw);
+  if (isRemote) {
+    const base = raw.endsWith('/') ? raw : raw + '/';
+    const parts = base.replace(/\/+$/, '').split('/');
+    const slug = parts[parts.length - 1] || '';
+    const fallbackBase = catCarpeta && slug ? `productos/${catCarpeta}/${slug}/` : undefined;
+    return { base, fallbackBase, slug, forceVideo };
+  }
+  const clean = raw.replace(/^\/+|\/+$/g, '');
+  if (clean.startsWith('productos/')) {
+    const base = clean + '/';
+    return { base, fallbackBase: undefined, slug: clean.split('/').pop() || clean, forceVideo };
+  }
+  const base = catCarpeta ? `productos/${catCarpeta}/${clean}/` : `${clean}/`;
+  const fallbackBase = catCarpeta && clean
+    ? `https://bkubdcfhgivgmckblsyt.supabase.co/storage/v1/object/public/media/productos/${catCarpeta}/${clean}/`
+    : undefined;
+  return { base, fallbackBase, slug: clean, forceVideo };
+}
+
+function resolveRecVideo(rec, base, match, forceVideo = null) {
+  if (forceVideo === false) return { hasVideo: false, videoUrl: '' };
+  if (forceVideo === true && base) return { hasVideo: true, videoUrl: base + 'animacion.mp4' };
   if (base && base.includes('recomendados/1')) {
     return { hasVideo: true, videoUrl: base + 'animacion.mp4' };
   }
@@ -159,10 +191,11 @@ async function loadRecomendados(jsonRecomendados) {
     jsonRecomendados.forEach((rec, idx) => {
       if (!isItemAvailable(rec)) return;
       syncItemTags(rec);
-      const base = rec.carpeta ? (rec.carpeta.endsWith('/') ? rec.carpeta : rec.carpeta + '/') : `productos/recomendados/${idx + 1}/`;
+      const parsed = parseFolderMeta(rec.carpeta || `productos/recomendados/${idx + 1}`, '');
+      const base = parsed.base;
       const target = norm(rec.nombre);
       const match = state.items.find((it) => norm(it.nombre) === target);
-      const vInfo = resolveRecVideo(rec, base, match);
+      const vInfo = resolveRecVideo(rec, base, match, parsed.forceVideo);
       list.push({
         ...rec,
         nombre: rec.nombre,
@@ -170,7 +203,7 @@ async function loadRecomendados(jsonRecomendados) {
         descripcion: rec.descripcion || '',
         tags: rec.tags || [],
         base,
-        fallbackBase: match ? match.base : undefined,
+        fallbackBase: match ? match.base : parsed.fallbackBase,
         hasVideo: vInfo.hasVideo,
         videoUrl: vInfo.videoUrl
       });
@@ -568,9 +601,11 @@ async function init() {
       return isItemAvailable(item);
     });
     activeItems.forEach((item) => {
-      item.key = c.id + '/' + item.carpeta;
-      item.base = `productos/${c.carpeta}/${item.carpeta}/`;
-      item.hasVideo = Boolean(item.tiene_video || hasCatVideo);
+      const parsed = parseFolderMeta(item.carpeta, c.carpeta);
+      item.key = c.id + '/' + parsed.slug;
+      item.base = parsed.base;
+      item.fallbackBase = parsed.fallbackBase;
+      item.hasVideo = parsed.forceVideo !== null ? parsed.forceVideo : Boolean(item.tiene_video || hasCatVideo);
       if (item.hasVideo) item.videoUrl = item.base + 'animacion.mp4';
       state.items.push(item);
       preloadItemMedia(item, true);

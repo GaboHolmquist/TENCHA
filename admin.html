@@ -5,12 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Admin | Tencha Matcheria</title>
   <meta name="theme-color" content="#09090b">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://bkubdcfhgivgmckblsyt.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://cdn.jsdelivr.net; worker-src 'self' blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: https://bkubdcfhgivgmckblsyt.supabase.co; connect-src 'self' blob: https://bkubdcfhgivgmckblsyt.supabase.co https://cdn.jsdelivr.net; object-src 'none'; base-uri 'self'; form-action 'self';">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
   <link rel="icon" type="image/png" href="logo.png">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js" integrity="sha384-YieCqqg9gQufX7+5HcFvCEg/n3KUEdl8/Jb+A6J0npf1mB740VayvwKjTrtCeUoy" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/util@0.12.1/dist/umd/index.js" crossorigin="anonymous"></script>
   <style>
     :root {
       --bg: #09090b;
@@ -566,6 +568,57 @@
       transform: translateY(0);
       opacity: 1;
     }
+
+    /* Media Upload Box (Superadmin) */
+    .media-upload-box {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px dashed rgba(152, 165, 132, 0.35);
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 16px;
+    }
+    .media-upload-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .media-drop {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 10px;
+    }
+    .media-drop input[type="file"] {
+      font-size: 0.75rem;
+      color: var(--muted);
+      width: 100%;
+    }
+    .media-status {
+      font-size: 0.73rem;
+      color: var(--matcha);
+      line-height: 1.35;
+    }
+    .progress-wrap {
+      margin-top: 10px;
+      display: none;
+    }
+    .progress-bar-bg {
+      width: 100%;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 99px;
+      overflow: hidden;
+      margin-top: 4px;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: var(--matcha);
+      transition: width 0.2s ease;
+    }
   </style>
 </head>
 <body>
@@ -655,7 +708,7 @@
         </div>
         <div class="form-group">
           <label class="form-label">Nombre del Producto</label>
-          <input type="text" id="prodNombre" class="form-input" placeholder="Ej: Koicha" required>
+          <input type="text" id="prodNombre" class="form-input" placeholder="Ej: Koicha" required oninput="autoFillCarpeta(this.value)">
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
           <div class="form-group">
@@ -683,8 +736,32 @@
           </div>
         </div>
         <div class="form-group" id="folderGroup">
-          <label class="form-label">Carpeta de Fotos (en productos/)</label>
+          <label class="form-label">Identificador / Carpeta del Producto</label>
           <input type="text" id="prodCarpeta" class="form-input" placeholder="01-nombre-carpeta" required>
+        </div>
+        <div class="media-upload-box" id="mediaUploadGroup" style="display:none;">
+          <label class="form-label" style="color:var(--matcha);margin-bottom:8px;">📸 Foto y Video (Optimización Automática)</label>
+          <div class="media-upload-grid">
+            <div class="media-drop">
+              <span style="font-size:0.78rem;font-weight:600;">Foto (4:5 WebP)</span>
+              <input type="file" id="prodFotoFile" accept="image/*" onchange="handleFotoSelect(this)">
+              <span class="media-status" id="fotoStatusText">Se comprime automáticamente a WebP ultraligero</span>
+            </div>
+            <div class="media-drop">
+              <span style="font-size:0.78rem;font-weight:600;">Video (MP4 720p)</span>
+              <input type="file" id="prodVideoFile" accept="video/mp4,video/quicktime,video/webm,video/*" onchange="handleVideoSelect(this)">
+              <span class="media-status" id="videoStatusText">Se convierte igual al Kabocha Latte (H.264 sin audio)</span>
+            </div>
+          </div>
+          <div class="progress-wrap" id="mediaProgressWrap">
+            <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:var(--text);">
+              <span id="mediaProgressLabel">Procesando multimedia...</span>
+              <span id="mediaProgressPct">0%</span>
+            </div>
+            <div class="progress-bar-bg">
+              <div class="progress-bar-fill" id="mediaProgressFill"></div>
+            </div>
+          </div>
         </div>
         <div class="form-group">
           <label class="form-label">Descripción</label>
@@ -978,12 +1055,17 @@
 
     function renderProductCard(item, isRec = false, catCarpeta = '') {
       let imgSrc = 'logo.png';
-      const safeFolder = String(item.carpeta || '').replace(/[^a-zA-Z0-9_\-\/]/g, '');
+      const rawFolder = String(item.carpeta || '').replace(/#(no)?video$/, '').trim();
       const safeCatFolder = String(catCarpeta || '').replace(/[^a-zA-Z0-9_\-\/]/g, '');
-      if (isRec) {
-        imgSrc = `${safeFolder.endsWith('/') ? safeFolder : safeFolder + '/'}foto.webp`;
+      if (/^https?:\/\//i.test(rawFolder)) {
+        imgSrc = (rawFolder.endsWith('/') ? rawFolder : rawFolder + '/') + 'foto.webp';
       } else {
-        imgSrc = `productos/${safeCatFolder}/${safeFolder}/foto.webp`;
+        const safeFolder = rawFolder.replace(/[^a-zA-Z0-9_\-\/]/g, '');
+        if (isRec || safeFolder.startsWith('productos/')) {
+          imgSrc = `${safeFolder.endsWith('/') ? safeFolder : safeFolder + '/'}foto.webp`;
+        } else {
+          imgSrc = `productos/${safeCatFolder}/${safeFolder}/foto.webp`;
+        }
       }
 
       const numId = Number(item.id) || 0;
@@ -1072,6 +1154,11 @@
       const cat = state.categories.find(c => c.id === prod.categoria_id);
       const catCarpeta = cat ? cat.carpeta : '';
 
+      const rawProdCarpeta = String(prod.carpeta || '').trim();
+      const isRemoteCarpeta = /^https?:\/\//i.test(rawProdCarpeta);
+      const hasCatVid = cat && (cat.id === 'matcha-puro' || cat.id === 'mezclas' || cat.carpeta === '01-matcha-puro' || cat.carpeta === '02-creaciones-de-matcha');
+      const hasVid = rawProdCarpeta.endsWith('#video') || (!rawProdCarpeta.endsWith('#novideo') && Boolean(prod.tiene_video || hasCatVid));
+
       const newRec = {
         nombre: prod.nombre,
         sub: prod.sub || '',
@@ -1081,8 +1168,8 @@
         tags: prod.tags || [],
         disponible: prod.disponible,
         descripcion: prod.descripcion || '',
-        carpeta: `productos/${catCarpeta}/${prod.carpeta}`,
-        tiene_video: false,
+        carpeta: isRemoteCarpeta || rawProdCarpeta.startsWith('productos/') ? rawProdCarpeta : `productos/${catCarpeta}/${rawProdCarpeta}`,
+        tiene_video: hasVid,
         orden: state.recomendados.length + 1
       };
 
@@ -1193,22 +1280,206 @@
       }
     }
 
+    // ---------- Optimización Automática de Foto (WebP 4:5) y Video (H.264 720p faststart) ----------
+    let selectedFotoBlob = null;
+    let selectedVideoFile = null;
+    let ffmpegInstance = null;
+
+    function slugifyFolder(text, count) {
+      const slug = String(text || '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+      const prefix = String(count || 1).padStart(2, '0');
+      return slug ? `${prefix}-${slug}` : `${prefix}-producto`;
+    }
+
+    function autoFillCarpeta(val) {
+      const editId = document.getElementById('editId').value;
+      if (editId) return; // Solo autogenerar en productos nuevos
+      const catId = document.getElementById('prodCat').value;
+      const inCatCount = state.products.filter(p => p.categoria_id === catId).length + 1;
+      document.getElementById('prodCarpeta').value = slugifyFolder(val, inCatCount);
+    }
+
+    function extractFolderSlug(rawCarpeta, fallbackName, catId) {
+      const clean = String(rawCarpeta || '').replace(/#(no)?video$/, '').replace(/\/+$/, '').trim();
+      if (/^https?:\/\//i.test(clean) || clean.includes('/')) {
+        const parts = clean.split('/').filter(Boolean);
+        return parts[parts.length - 1] || slugifyFolder(fallbackName, 1);
+      }
+      if (clean) return clean.replace(/[^a-zA-Z0-9_\-]/g, '');
+      const inCatCount = state.products.filter(p => p.categoria_id === catId).length + 1;
+      return slugifyFolder(fallbackName, inCatCount);
+    }
+
+    function setMediaProgress(show, label = '', pct = 0) {
+      const wrap = document.getElementById('mediaProgressWrap');
+      const lbl = document.getElementById('mediaProgressLabel');
+      const pctEl = document.getElementById('mediaProgressPct');
+      const fill = document.getElementById('mediaProgressFill');
+      if (!wrap) return;
+      wrap.style.display = show ? 'block' : 'none';
+      if (lbl) lbl.textContent = label;
+      const clamped = Math.max(0, Math.min(100, Math.round(pct)));
+      if (pctEl) pctEl.textContent = clamped + '%';
+      if (fill) fill.style.width = clamped + '%';
+    }
+
+    async function compressImageToWebP(file) {
+      return new Promise((resolve, reject) => {
+        const url = URL.createObjectURL(file);
+        const img = new Image();
+        img.onload = () => {
+          URL.revokeObjectURL(url);
+          // Proporción 4:5 centrada (máx 900x1125 px, igual que el resto del catálogo)
+          const targetRatio = 4 / 5;
+          const srcRatio = img.width / img.height;
+          let sx = 0, sy = 0, sw = img.width, sh = img.height;
+          if (srcRatio > targetRatio) {
+            sw = img.height * targetRatio;
+            sx = (img.width - sw) / 2;
+          } else {
+            sh = img.width / targetRatio;
+            sy = (img.height - sh) / 2;
+          }
+          const outW = Math.min(900, Math.round(sw));
+          const outH = Math.round(outW / targetRatio);
+          const canvas = document.createElement('canvas');
+          canvas.width = outW;
+          canvas.height = outH;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, sx, sy, sw, sh, 0, 0, outW, outH);
+          canvas.toBlob((blob) => {
+            if (blob) resolve(blob);
+            else reject(new Error('No se pudo convertir la imagen a WebP'));
+          }, 'image/webp', 0.82);
+        };
+        img.onerror = () => {
+          URL.revokeObjectURL(url);
+          reject(new Error('No se pudo leer la imagen seleccionada'));
+        };
+        img.src = url;
+      });
+    }
+
+    async function handleFotoSelect(input) {
+      const status = document.getElementById('fotoStatusText');
+      const file = input.files && input.files[0];
+      if (!file) {
+        selectedFotoBlob = null;
+        status.textContent = 'Se comprime automáticamente a WebP ultraligero';
+        return;
+      }
+      status.textContent = 'Optimizando foto a WebP 4:5...';
+      try {
+        selectedFotoBlob = await compressImageToWebP(file);
+        const origKB = Math.round(file.size / 1024);
+        const newKB = Math.round(selectedFotoBlob.size / 1024);
+        status.textContent = `✓ Lista: ${origKB} KB → ${newKB} KB (WebP 4:5)`;
+      } catch (err) {
+        selectedFotoBlob = null;
+        status.textContent = '⚠️ Error al procesar foto: ' + err.message;
+      }
+    }
+
+    function handleVideoSelect(input) {
+      const status = document.getElementById('videoStatusText');
+      const file = input.files && input.files[0];
+      if (!file) {
+        selectedVideoFile = null;
+        status.textContent = 'Se convierte igual al Kabocha Latte (H.264 sin audio)';
+        return;
+      }
+      selectedVideoFile = file;
+      const mb = (file.size / (1024 * 1024)).toFixed(1);
+      status.textContent = `✓ Video seleccionado (${mb} MB) — se optimizará al guardar`;
+    }
+
+    async function getFFmpeg(onProgress) {
+      if (ffmpegInstance && ffmpegInstance.loaded) return ffmpegInstance;
+      if (!window.FFmpegWASM || !window.FFmpegUtil) {
+        throw new Error('Librería FFmpeg no disponible en el navegador');
+      }
+      const { FFmpeg } = window.FFmpegWASM;
+      const { toBlobURL } = window.FFmpegUtil;
+      const ffmpeg = new FFmpeg();
+      ffmpeg.on('progress', ({ progress }) => {
+        if (typeof onProgress === 'function' && Number.isFinite(progress)) {
+          onProgress(Math.max(5, Math.min(95, progress * 100)));
+        }
+      });
+      const baseCore = 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/umd';
+      const baseFF = 'https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/umd';
+      await ffmpeg.load({
+        classWorkerURL: await toBlobURL(`${baseFF}/814.ffmpeg.js`, 'text/javascript'),
+        coreURL: await toBlobURL(`${baseCore}/ffmpeg-core.js`, 'text/javascript'),
+        wasmURL: await toBlobURL(`${baseCore}/ffmpeg-core.wasm`, 'application/wasm')
+      });
+      ffmpegInstance = ffmpeg;
+      return ffmpeg;
+    }
+
+    async function optimizeVideoToKabochaFormat(file, onProgress) {
+      const { fetchFile } = window.FFmpegUtil;
+      const ffmpeg = await getFFmpeg(onProgress);
+      const ext = (file.name.split('.').pop() || 'mp4').toLowerCase().replace(/[^a-z0-9]/g, '');
+      const inName = `input.${ext}`;
+      const outName = 'animacion.mp4';
+      await ffmpeg.writeFile(inName, await fetchFile(file));
+      await ffmpeg.exec([
+        '-i', inName,
+        '-vf', 'scale=720:-2',
+        '-c:v', 'libx264',
+        '-profile:v', 'main',
+        '-pix_fmt', 'yuv420p',
+        '-crf', '23',
+        '-preset', 'ultrafast',
+        '-an',
+        '-movflags', '+faststart',
+        outName
+      ]);
+      const data = await ffmpeg.readFile(outName);
+      await ffmpeg.deleteFile(inName).catch(() => {});
+      await ffmpeg.deleteFile(outName).catch(() => {});
+      return new Blob([data.buffer], { type: 'video/mp4' });
+    }
+
+    function resetMediaInputs() {
+      selectedFotoBlob = null;
+      selectedVideoFile = null;
+      const fInput = document.getElementById('prodFotoFile');
+      const vInput = document.getElementById('prodVideoFile');
+      if (fInput) fInput.value = '';
+      if (vInput) vInput.value = '';
+      const fStatus = document.getElementById('fotoStatusText');
+      const vStatus = document.getElementById('videoStatusText');
+      if (fStatus) fStatus.textContent = 'Se comprime automáticamente a WebP ultraligero';
+      if (vStatus) vStatus.textContent = 'Se convierte igual al Kabocha Latte (H.264 sin audio)';
+      setMediaProgress(false);
+    }
+
     // ---------- Modal / Product CRUD ----------
     function openNewProductModal() {
       if (!canAddOrDelete()) {
         showToast('No tienes permisos para añadir productos nuevos', false);
         return;
       }
+      resetMediaInputs();
       document.getElementById('modalTitle').textContent = 'Añadir Nuevo Producto';
       document.getElementById('editId').value = '';
       document.getElementById('editIsRec').value = 'false';
       document.getElementById('catSelectGroup').style.display = 'block';
       document.getElementById('folderGroup').style.display = 'block';
+      document.getElementById('mediaUploadGroup').style.display = 'block';
       document.getElementById('btnDeleteProd').style.display = 'none';
 
       // Populate category options
       const catSelect = document.getElementById('prodCat');
       catSelect.innerHTML = state.categories.map(c => `<option value="${esc(c.id)}">${esc(c.nombre)}</option>`).join('');
+      catSelect.onchange = () => autoFillCarpeta(document.getElementById('prodNombre').value);
 
       document.getElementById('prodNombre').value = '';
       document.getElementById('prodSub').value = '';
@@ -1227,6 +1498,7 @@
       const item = list.find(x => x.id === id);
       if (!item) return;
 
+      resetMediaInputs();
       document.getElementById('modalTitle').textContent = 'Editar ' + item.nombre;
       document.getElementById('editId').value = id;
       document.getElementById('editIsRec').value = isRec ? 'true' : 'false';
@@ -1241,6 +1513,7 @@
       }
 
       document.getElementById('folderGroup').style.display = canAddOrDelete() ? 'block' : 'none';
+      document.getElementById('mediaUploadGroup').style.display = canAddOrDelete() ? 'block' : 'none';
       document.getElementById('prodCarpeta').value = item.carpeta || '';
       document.getElementById('prodNombre').value = item.nombre || '';
       document.getElementById('prodSub').value = item.sub || '';
@@ -1274,7 +1547,7 @@
       const jp = document.getElementById('prodJp').value.trim();
       const precio = parseInt(document.getElementById('prodPrecio').value, 10);
       const temperatura = document.getElementById('prodTemp').value;
-      const carpeta = document.getElementById('prodCarpeta').value.trim();
+      let carpeta = document.getElementById('prodCarpeta').value.trim();
       const descripcion = document.getElementById('prodDesc').value.trim();
       const disponible = document.getElementById('prodDisp').checked;
 
@@ -1283,9 +1556,63 @@
       else if (temperatura === 'frio') tags = ['frio'];
       else if (temperatura === 'ambos') tags = ['frio', 'caliente'];
 
-      const payload = { nombre, sub, jp, precio, temperatura, tags, carpeta, descripcion, disponible };
-
       try {
+        // Si el superadmin seleccionó foto y/o video, optimizar y subir a Supabase Storage (bucket 'media')
+        if (canAddOrDelete() && (selectedFotoBlob || selectedVideoFile)) {
+          const catId = isRec ? '' : document.getElementById('prodCat').value;
+          const catObj = state.categories.find(c => c.id === catId);
+          const catCarpeta = catObj ? catObj.carpeta : 'recomendados';
+          const slug = extractFolderSlug(carpeta, nombre, catId);
+          const storagePrefix = isRec ? `productos/recomendados/${slug}` : `productos/${catCarpeta}/${slug}`;
+
+          // Intentar crear bucket 'media' por si aún no existe
+          await supabaseClient.storage.createBucket('media', { public: true }).catch(() => {});
+
+          if (selectedFotoBlob) {
+            setMediaProgress(true, 'Subiendo foto WebP optimizada...', 20);
+            const { error: upImgErr } = await supabaseClient.storage
+              .from('media')
+              .upload(`${storagePrefix}/foto.webp`, selectedFotoBlob, {
+                contentType: 'image/webp',
+                cacheControl: '60',
+                upsert: true
+              });
+            if (upImgErr) throw new Error('Storage Foto: ' + upImgErr.message);
+          }
+
+          let uploadedVideo = false;
+          if (selectedVideoFile) {
+            setMediaProgress(true, 'Cargando motor FFmpeg y optimizando video (720p H.264 sin audio)...', 10);
+            const videoBlob = await optimizeVideoToKabochaFormat(selectedVideoFile, (pct) => {
+              setMediaProgress(true, 'Optimizando video al formato Kabocha Latte...', pct);
+            });
+            const vStatus = document.getElementById('videoStatusText');
+            if (vStatus) {
+              const origMB = (selectedVideoFile.size / (1024 * 1024)).toFixed(1);
+              const newKB = Math.round(videoBlob.size / 1024);
+              vStatus.textContent = `✓ Video optimizado: ${origMB} MB → ${newKB} KB`;
+            }
+            setMediaProgress(true, 'Subiendo video optimizado a Supabase...', 96);
+            const { error: upVidErr } = await supabaseClient.storage
+              .from('media')
+              .upload(`${storagePrefix}/animacion.mp4`, videoBlob, {
+                contentType: 'video/mp4',
+                cacheControl: '60',
+                upsert: true
+              });
+            if (upVidErr) throw new Error('Storage Video: ' + upVidErr.message);
+            uploadedVideo = true;
+          }
+
+          setMediaProgress(true, 'Guardando producto...', 100);
+          const hadVideoBefore = carpeta.endsWith('#video');
+          const hasVideoFinal = uploadedVideo || hadVideoBefore;
+          const publicBaseUrl = `${SUPABASE_URL}/storage/v1/object/public/media/${storagePrefix}/`;
+          carpeta = publicBaseUrl + (hasVideoFinal ? '#video' : '#novideo');
+        }
+
+        const payload = { nombre, sub, jp, precio, temperatura, tags, carpeta, descripcion, disponible };
+
         if (id) {
           // Update
           const table = isRec ? 'recomendados' : 'productos';
@@ -1296,7 +1623,7 @@
           if (error) throw error;
           if (recMatch) {
             await supabaseClient.from('recomendados').update({
-              nombre, sub, jp, precio, temperatura, tags, descripcion, disponible
+              nombre, sub, jp, precio, temperatura, tags, carpeta, descripcion, disponible
             }).eq('id', recMatch.id);
           }
           showToast('Producto actualizado con éxito');
@@ -1314,6 +1641,7 @@
         showToast('Error al guardar: ' + err.message, false);
       } finally {
         btn.disabled = false;
+        setMediaProgress(false);
       }
     }
 
