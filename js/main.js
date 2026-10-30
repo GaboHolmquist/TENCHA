@@ -638,12 +638,15 @@ async function init() {
   document.addEventListener('dragstart', (e) => e.preventDefault());
 }
 
-// ---------- Scroll con 5% de fricción (sin rebotes) ----------
+// ---------- Scroll con fricción y Pull-to-Refresh suave ----------
 function initHeavyScroll() {
   const SPEED = 0.95;      // 5% de fricción al deslizar (95% de velocidad 1:1)
   const FRICTION = 0.95;   // 5% de desaceleración por cuadro al soltar
   let lastY = 0, lastT = 0, vel = 0, raf = 0, touching = false, horiz = null;
   const dlg = $('productPopup');
+  const ptrCircle = $('ptrCircle');
+  const ptrArc = $('ptrArc');
+  let pullDistance = 0, isPulling = false, startY0 = 0;
 
   const maxScroll = () => Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
 
@@ -662,8 +665,10 @@ function initHeavyScroll() {
     vel = 0;
     touching = true;
     horiz = null;
+    pullDistance = 0;
+    isPulling = false;
     xStart = e.touches[0].clientX;
-    yStart = lastY = e.touches[0].clientY;
+    yStart = startY0 = lastY = e.touches[0].clientY;
     lastT = performance.now();
   }, { passive: true });
 
@@ -676,6 +681,25 @@ function initHeavyScroll() {
       horiz = inHScroll && Math.abs(x - xStart) > Math.abs(y - yStart);
     }
     if (horiz) return;
+
+    // Pull-to-refresh: si está en el tope superior y desliza hacia abajo
+    if (window.scrollY <= 0 && y > startY0 && ptrCircle) {
+      isPulling = true;
+      e.preventDefault();
+      const rawPull = (y - startY0);
+      pullDistance = Math.min(85, rawPull * 0.42);
+      const progress = Math.min(1, pullDistance / 50);
+      ptrCircle.style.transform = `translateY(${pullDistance - 36}px) scale(${0.7 + progress * 0.3})`;
+      ptrCircle.style.opacity = String(progress);
+      if (ptrArc) {
+        ptrArc.style.strokeDashoffset = String(56.5 * (1 - progress));
+        const svg = ptrCircle.querySelector('.ptr-svg');
+        if (svg) svg.style.transform = `rotate(${-90 + progress * 360}deg)`;
+      }
+      return;
+    }
+
+    if (isPulling) return;
     e.preventDefault();
     const now = performance.now();
     const dt = Math.max(8, now - lastT);
@@ -690,6 +714,24 @@ function initHeavyScroll() {
   const endTouch = () => {
     if (!touching) return;
     touching = false;
+    if (isPulling && ptrCircle) {
+      if (pullDistance >= 50) {
+        // Umbral alcanzado: activar animación de giro y recargar la página
+        ptrCircle.classList.add('refreshing');
+        if (ptrArc) ptrArc.style.strokeDashoffset = '16';
+        if (navigator.vibrate) navigator.vibrate(20);
+        setTimeout(() => {
+          location.reload();
+        }, 400);
+        return;
+      } else {
+        // Regresar a la posición inicial
+        ptrCircle.style.transform = 'translateY(-50px) scale(0.65)';
+        ptrCircle.style.opacity = '0';
+      }
+      isPulling = false;
+      pullDistance = 0;
+    }
     if (!horiz && Math.abs(vel) >= 0.4) raf = requestAnimationFrame(glide);
   };
   window.addEventListener('touchend', endTouch, { passive: true });

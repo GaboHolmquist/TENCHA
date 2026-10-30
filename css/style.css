@@ -40,6 +40,53 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .brand { text-decoration: none; color: var(--text); display: flex; align-items: center; justify-content: center; line-height: 1; }
 .brand-logo { height: 36px; max-height: 36px; width: auto; display: block; pointer-events: none; }
 
+/* Pull-to-refresh minimalista estilo app móvil */
+.ptr-wrap {
+  position: fixed;
+  top: 56px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  pointer-events: none;
+  z-index: 28;
+}
+.ptr-circle {
+  width: 36px;
+  height: 36px;
+  border-radius: 99px;
+  background: rgba(42, 37, 31, 0.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: translateY(-50px) scale(0.65);
+  opacity: 0;
+  transition: transform 0.08s ease-out, opacity 0.12s ease-out;
+  will-change: transform, opacity;
+}
+.ptr-svg {
+  width: 20px;
+  height: 20px;
+  transform: rotate(-90deg);
+}
+.ptr-circle.refreshing {
+  transition: transform 0.25s cubic-bezier(0.18, 0.9, 0.3, 1), opacity 0.2s !important;
+  transform: translateY(14px) scale(1) !important;
+  opacity: 1 !important;
+}
+.ptr-circle.refreshing .ptr-svg {
+  animation: ptr-spin 0.75s linear infinite;
+  transform-origin: center;
+}
+@keyframes ptr-spin {
+  100% { transform: rotate(270deg); }
+}
+
 .glass {
   background: var(--card);
   backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);

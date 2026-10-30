@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
   <link rel="icon" type="image/png" href="logo.png">
-  <link rel="stylesheet" href="css/style.css?v=5">
+  <link rel="stylesheet" href="css/style.css?v=6">
 </head>
 <body>
   <header class="topbar">
@@ -22,6 +22,16 @@
       </picture>
     </a>
   </header>
+
+  <!-- Indicador Pull-to-Refresh estilo app móvil -->
+  <div class="ptr-wrap" id="ptrWrap" aria-hidden="true">
+    <div class="ptr-circle" id="ptrCircle">
+      <svg class="ptr-svg" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="9" stroke="rgba(255,240,215,0.18)" stroke-width="2.5"></circle>
+        <circle id="ptrArc" cx="12" cy="12" r="9" stroke="var(--matcha)" stroke-width="2.5" stroke-dasharray="56.5" stroke-dashoffset="56.5" stroke-linecap="round"></circle>
+      </svg>
+    </div>
+  </div>
 
   <main>
     <!-- Hero: carrusel de 3 destacados -->
@@ -81,6 +91,6 @@
     </div>
   </dialog>
 
-  <script src="js/main.js?v=6"></script>
+  <script src="js/main.js?v=7"></script>
 </body>
 </html>
