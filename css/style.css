@@ -196,9 +196,22 @@ body, .slide, .cat-card, .item-card, .popup-card {
 }
 .popup-nav button:hover { transform: scale(1.08); background: rgba(255, 248, 235, .05); }
 
-.footer { text-align: center; color: var(--faint); padding: 40px 0 60px; font-size: .8rem; letter-spacing: .1em; }
+.footer { text-align: center; color: var(--faint); padding: 40px 0 60px; font-size: .8rem; letter-spacing: .1em; display: flex; flex-direction: column; align-items: center; }
 .footer a { color: var(--faint); text-decoration: none; }
 .footer a span { color: var(--text); font-weight: 600; }
+.stealth-dots {
+  display: inline-block;
+  margin-top: 20px;
+  color: rgba(255, 255, 255, 0.12);
+  font-size: 0.95rem;
+  letter-spacing: 0.4em;
+  text-decoration: none;
+  cursor: pointer;
+  padding: 10px 24px;
+  user-select: none;
+  transition: color 0.3s ease;
+}
+.stealth-dots:hover { color: rgba(255, 255, 255, 0.28); }
 
 @media (min-width: 720px) {
   .slide { aspect-ratio: 16 / 10; }
