@@ -252,29 +252,39 @@ body, .slide, .cat-card, .item-card, .popup-card {
   * { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
 }
 
-/* Popup: cuerpo de altura fija, descripción en 3 líneas + "Leer más" */
+/* Popup: cuerpo con scroll natural para leer descripción completa */
 .popup-media { flex: 0 0 auto; }
-.popup-body { flex: 1 1 0; min-height: 0; overflow-y: auto; padding: 18px 22px 4px; scrollbar-width: none; }
+.popup-body {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  padding: 14px 22px 10px;
+  scrollbar-width: none;
+}
 .popup-body::-webkit-scrollbar { display: none; }
 .popup-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
 .popup-head { font-size: 1.45rem; min-width: 0; }
 .popup-head .name-es { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .popup-row .popup-price { margin-top: 0; font-size: 1.15rem; white-space: nowrap; }
 .popup-tags { margin-top: 10px; min-height: 22px; }
-.popup-desc { margin-top: 10px; font-size: .92rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.popup-desc.open { -webkit-line-clamp: unset; display: block; }
-.popup-more { color: var(--matcha); font-size: .8rem; margin-top: 4px; letter-spacing: .04em; }
+.popup-desc {
+  margin-top: 8px;
+  font-size: .92rem;
+  line-height: 1.45;
+  white-space: pre-line;
+  display: block;
+}
+.popup-more { display: none !important; }
 .popup-nav { flex: 0 0 auto; padding: 6px 16px 16px; }
 .popup[open] { display: flex; }
 
 /* Ajustes v3: texto más pegado, flechas sin círculo, bloqueo de scroll */
 html.lock { overflow: hidden; overscroll-behavior: none; }
-.popup-body { padding: 14px 22px 0; }
 .popup-head .name-jp { margin-top: 1px; }
 .popup-tags { margin: 0 0 6px; min-height: 0; }
 .popup-tags:empty { display: none; }
-.popup-desc { margin-top: 8px; -webkit-line-clamp: 4; line-height: 1.45; white-space: pre-line; }
-.popup-more { margin-top: 2px; }
 .popup-nav { padding: 0 10px 8px; }
 .popup-nav button, .popup-nav button:hover {
   width: 48px; height: 40px; border: 0; background: none; transform: none;

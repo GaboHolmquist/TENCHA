@@ -454,14 +454,8 @@ function fillPopupCard(card, item) {
   card.querySelector('.popup-head').innerHTML = nameBlock(item.nombre, item.sub, item.jp);
   const desc = card.querySelector('.popup-desc'), more = card.querySelector('.popup-more'), body = card.querySelector('.popup-body');
   desc.textContent = item.descripcion || '';
-  desc.classList.remove('open');
-  body.scrollTop = 0;
-  more.textContent = 'Leer más';
-  more.onclick = () => {
-    const open = desc.classList.toggle('open');
-    more.textContent = open ? 'Leer menos' : 'Leer más';
-  };
-  requestAnimationFrame(() => { more.hidden = desc.scrollHeight <= desc.clientHeight + 1; });
+  if (body) body.scrollTop = 0;
+  if (more) more.remove();
   card.querySelector('.popup-variants').innerHTML = '';
   const v = item.variantes || [];
   card.querySelector('.popup-price').innerHTML = v.length
@@ -541,16 +535,22 @@ function initPopup() {
     if (e.key === 'ArrowLeft') navigate(-1);
     if (e.key === 'ArrowRight') navigate(1);
   });
-  let x0 = null, y0 = null;
+  let x0 = null, y0 = null, startScrollTop = 0;
   dlg.addEventListener('touchstart', (e) => {
     x0 = e.touches[0].clientX;
     y0 = e.touches[0].clientY;
+    const currentCard = dlg.querySelector('.popup-card:not(.exiting)');
+    const body = currentCard ? currentCard.querySelector('.popup-body') : null;
+    startScrollTop = body ? body.scrollTop : 0;
   }, { passive: true });
   dlg.addEventListener('touchend', (e) => {
     if (x0 === null || y0 === null) return;
     const dx = e.changedTouches[0].clientX - x0;
     const dy = e.changedTouches[0].clientY - y0;
-    if (Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > 55) {
+
+    // Deslizar de arriba hacia abajo (dy > 0): cierra el globo solo si inició en la parte superior del cuerpo
+    // El scroll hacia arriba (dy < 0 para leer texto abajo) queda deshabilitado para cerrar
+    if (dy > 65 && dy > Math.abs(dx) * 1.2 && startScrollTop <= 2) {
       dlg.close();
     } else if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
       navigate(dx < 0 ? 1 : -1);

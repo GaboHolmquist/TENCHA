@@ -2,52 +2,52 @@
   "recomendados": [
     {
       "id": 1,
-      "nombre": "Kabocha Latte",
+      "nombre": "Kabocha Latte - limited",
       "sub": "Edición especial",
       "jp": "南瓜",
       "precio": 4800,
-      "temperatura": "caliente",
+      "temperatura": "ambos",
       "tags": [
+        "frio",
         "caliente"
       ],
       "disponible": true,
-      "descripcion": "Kabocha squash asada y especiada con leche vaporizada y el toque justo de dulzor.\n\nIngredientes:\n• Puré de zapallo kabocha asado\n• Canela, jengibre y nuez moscada\n• Leche a elección",
+      "descripcion": "Disponible solo hasta el 01 de noviembre\n\nKabocha squash asada y especiada con leche vaporizada y el toque justo de dulzor.\n\nIngredientes:\n• Puré de zapallo kabocha asado\n• Canela, jengibre y nuez moscada\n• Leche a elección",
       "carpeta": "productos/recomendados/1",
       "tiene_video": true,
       "orden": 1
     },
     {
-      "id": 5,
-      "nombre": "Café con Leche Grande",
+      "id": 7,
+      "nombre": "Matcha Tónica Naranja",
       "sub": "",
-      "jp": "カフェラテ",
-      "precio": 4500,
-      "temperatura": "ambos",
+      "jp": "抹茶トニック",
+      "precio": 5200,
+      "temperatura": "frio",
       "tags": [
-        "frio",
-        "caliente"
+        "frio"
       ],
       "disponible": true,
-      "descripcion": "",
-      "carpeta": "productos/03-cafe-de-especialidad/02-cafe-con-leche-grande",
-      "tiene_video": false,
+      "descripcion": "Una bebida refrescante. (Matcha, Agua Tónica, Jugo de Naranja)",
+      "carpeta": "productos/02-creaciones-de-matcha/02-matcha-tonica-naranja",
+      "tiene_video": true,
       "orden": 2
     },
     {
-      "id": 6,
-      "nombre": "Rooibos",
-      "sub": "",
-      "jp": "ルイボス",
-      "precio": 2500,
+      "id": 8,
+      "nombre": "Fruit Matcha",
+      "sub": "Leche entera o vegetal",
+      "jp": "果物抹茶",
+      "precio": 4800,
       "temperatura": "ambos",
       "tags": [
         "frio",
         "caliente"
       ],
       "disponible": true,
-      "descripcion": "Infusión sudafricana de sabor suave, dulce y reconfortante.",
-      "carpeta": "productos/04-otras-bebidas/05-rooibos",
-      "tiene_video": false,
+      "descripcion": "Matcha, puré de fruta, leche vegetal o entera.",
+      "carpeta": "productos/02-creaciones-de-matcha/04-fruit-matcha",
+      "tiene_video": true,
       "orden": 3
     }
   ],
