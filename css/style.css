@@ -33,13 +33,12 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 /* Topbar */
 .topbar {
   position: sticky; top: 0; z-index: 30;
-  display: flex; justify-content: center; padding: 14px;
+  display: flex; justify-content: center; align-items: center; padding: 11px 14px;
   background: rgba(31, 29, 26, .82); backdrop-filter: blur(14px);
   border-bottom: 1px solid var(--border);
 }
-.brand { text-decoration: none; color: var(--text); display: flex; flex-direction: column; align-items: center; line-height: 1; }
-.brand-name { font-weight: 800; font-size: 1.4rem; letter-spacing: .1em; }
-.brand-sub { font-size: .58rem; letter-spacing: .4em; color: var(--muted); margin-top: 4px; }
+.brand { text-decoration: none; color: var(--text); display: flex; align-items: center; justify-content: center; line-height: 1; }
+.brand-logo { height: 36px; max-height: 36px; width: auto; display: block; pointer-events: none; }
 
 .glass {
   background: var(--card);
@@ -229,7 +228,7 @@ html.lock { overflow: hidden; overscroll-behavior: none; }
 .popup-head .name-jp { margin-top: 1px; }
 .popup-tags { margin: 0 0 6px; min-height: 0; }
 .popup-tags:empty { display: none; }
-.popup-desc { margin-top: 8px; -webkit-line-clamp: 4; line-height: 1.45; }
+.popup-desc { margin-top: 8px; -webkit-line-clamp: 4; line-height: 1.45; white-space: pre-line; }
 .popup-more { margin-top: 2px; }
 .popup-nav { padding: 0 10px 8px; }
 .popup-nav button, .popup-nav button:hover {

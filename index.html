@@ -9,16 +9,22 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" type="image/png" href="logo.png">
+  <link rel="stylesheet" href="css/style.css?v=3">
 </head>
 <body>
   <header class="topbar">
-    <a href="#" class="brand" id="brandLink"><span class="brand-name">TENCHA</span><span class="brand-sub">MATCHERIA</span></a>
+    <a href="#" class="brand" id="brandLink" aria-label="Tencha Matcheria — volver al inicio">
+      <picture>
+        <source srcset="logo.webp" type="image/webp">
+        <img src="logo.png" alt="Tencha Matcheria" class="brand-logo" width="110" height="45" style="height:36px;width:auto;display:block" draggable="false">
+      </picture>
+    </a>
   </header>
 
   <main>
     <!-- Hero: carrusel de 3 destacados -->
-    <section class="hero" aria-labelledby="recTitle">
+    <section class="hero" id="heroCarousel" aria-labelledby="recTitle">
       <h2 class="rec-title" id="recTitle">Recomendados</h2>
       <div class="carousel" id="carousel"></div>
       <div class="dots" id="carouselDots"></div>
@@ -64,6 +70,6 @@
     </div>
   </dialog>
 
-  <script src="js/main.js"></script>
+  <script src="js/main.js?v=2"></script>
 </body>
 </html>

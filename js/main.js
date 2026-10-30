@@ -90,8 +90,51 @@ function mediaImg(src, item, alt, highPriority = false) {
   return wrap;
 }
 
-// ---------- Carrusel (productos/recomendados/1, 2, 3) ----------
-async function loadRecomendados() {
+// ---------- Disponibilidad y Temperatura ----------
+function isItemAvailable(item) {
+  if (!item) return false;
+  if (item.disponible === false) return false;
+  if (typeof item.disponible === 'string') {
+    const s = item.disponible.toLowerCase().trim();
+    if (s === 'apagado' || s === 'off' || s === 'no' || s === 'falso' || s === 'false') return false;
+  }
+  return true;
+}
+
+function syncItemTags(item) {
+  if (item.temperatura) {
+    const t = String(item.temperatura).toLowerCase().trim();
+    if (t === 'ambos' || t === 'ambas' || (t.includes('frio') && t.includes('caliente'))) item.tags = ['frio', 'caliente'];
+    else if (t === 'frio' || t === 'frío') item.tags = ['frio'];
+    else if (t === 'caliente') item.tags = ['caliente'];
+    else if (t === 'ninguna' || t === 'ninguno' || t === '-') item.tags = [];
+  }
+}
+
+// ---------- Carrusel (productos/recomendados o data/menu.json) ----------
+async function loadRecomendados(jsonRecomendados) {
+  if (Array.isArray(jsonRecomendados) && jsonRecomendados.length > 0) {
+    const list = [];
+    jsonRecomendados.forEach((rec, idx) => {
+      if (!isItemAvailable(rec)) return;
+      syncItemTags(rec);
+      const base = rec.carpeta ? (rec.carpeta.endsWith('/') ? rec.carpeta : rec.carpeta + '/') : `productos/recomendados/${idx + 1}/`;
+      const target = norm(rec.nombre);
+      const match = state.items.find((it) => norm(it.nombre) === target);
+      list.push({
+        ...rec,
+        nombre: rec.nombre,
+        precio: rec.precio,
+        descripcion: rec.descripcion || '',
+        tags: rec.tags || [],
+        base,
+        fallbackBase: match ? match.base : undefined,
+        hasVideo: !!rec.tiene_video || (idx === 0 && base.includes('recomendados/1'))
+      });
+    });
+    if (list.length > 0) return list;
+  }
+
   const list = [];
   for (const n of [1, 2, 3]) {
     const base = `productos/recomendados/${n}/`;
@@ -135,10 +178,14 @@ async function loadRecomendados() {
 
 function renderCarousel(list) {
   const car = $('carousel'), dots = $('carouselDots');
+  car.innerHTML = '';
+  dots.innerHTML = '';
+  if (!list || list.length === 0) return;
   // Precarga en memoria únicamente el video del recomendado 1 para que al abrir el globo aparezca directo el video sin pasar por la imagen
-  if (list[0]) {
-    list[0].hasVideo = true;
-    preloadVideo(list[0].base + 'animacion.mp4');
+  const videoItem = list.find((it) => it.hasVideo) || list[0];
+  if (videoItem && (videoItem.hasVideo || (videoItem.base && videoItem.base.includes('recomendados/1')))) {
+    videoItem.hasVideo = true;
+    preloadVideo(videoItem.base + 'animacion.mp4');
   }
   list.forEach((item, idx) => {
     const s = document.createElement('div');
@@ -170,7 +217,9 @@ function renderCarousel(list) {
 // ---------- Categorías (tiritas horizontales 21:9 con texto a la izquierda e imagen a la derecha) ----------
 function renderCategories() {
   const grid = $('catGrid');
+  grid.innerHTML = '';
   state.cats.forEach((c) => {
+    if (!c.items || c.items.length === 0) return;
     const b = document.createElement('button');
     b.className = 'cat-card glass';
     b.id = 'cat-' + c.id;
@@ -218,7 +267,10 @@ function goToCategory(id) {
 // ---------- Lista completa ----------
 function renderMenu() {
   const bar = $('catBar'), wrap = $('menuSections');
+  bar.innerHTML = '';
+  wrap.innerHTML = '';
   state.cats.forEach((c) => {
+    if (!c.items || c.items.length === 0) return;
     const chip = document.createElement('button');
     chip.className = 'chip';
     chip.dataset.cat = c.id;
@@ -402,22 +454,68 @@ function initPopup() {
   });
 }
 
+const SUPABASE_URL = 'https://bkubdcfhgivgmckblsyt.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_5SF5J8y_r1KWJTU1aT_43w_VEKhdiqS';
+
+async function fetchMenuData() {
+  try {
+    const headers = { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` };
+    const [catsRes, prodsRes, recsRes] = await Promise.all([
+      fetch(`${SUPABASE_URL}/rest/v1/categorias?select=*&order=orden.asc`, { headers }),
+      fetch(`${SUPABASE_URL}/rest/v1/productos?select=*&order=orden.asc`, { headers }),
+      fetch(`${SUPABASE_URL}/rest/v1/recomendados?select=*&order=orden.asc`, { headers })
+    ]);
+    if (!catsRes.ok || !prodsRes.ok || !recsRes.ok) throw new Error('Supabase fetch failed');
+    const [cats, prods, recs] = await Promise.all([catsRes.json(), prodsRes.json(), recsRes.json()]);
+
+    const categories = cats.map((c) => ({
+      ...c,
+      items: prods.filter((p) => p.categoria_id === c.id)
+    }));
+
+    return {
+      categorias: categories,
+      recomendados: recs
+    };
+  } catch (err) {
+    console.warn('Usando data/menu.json local por:', err.message);
+    const res = await fetch('data/menu.json?v=' + Date.now(), { cache: 'no-store' });
+    return await res.json();
+  }
+}
+
 // ---------- Init ----------
 async function init() {
-  const res = await fetch('data/menu.json');
-  const data = await res.json();
-  state.cats = data.categorias;
-  state.cats.forEach((c) => c.items.forEach((item) => {
-    item.key = c.id + '/' + item.carpeta;
-    item.base = `productos/${c.carpeta}/${item.carpeta}/`;
-    state.items.push(item);
-    preloadItemMedia(item);
-  }));
-  renderCarousel(await loadRecomendados());
+  const data = await fetchMenuData();
+  state.items = [];
+  state.cats = (data.categorias || []).map((c) => {
+    const activeItems = (c.items || []).filter((item) => {
+      syncItemTags(item);
+      return isItemAvailable(item);
+    });
+    activeItems.forEach((item) => {
+      item.key = c.id + '/' + item.carpeta;
+      item.base = `productos/${c.carpeta}/${item.carpeta}/`;
+      state.items.push(item);
+      preloadItemMedia(item);
+    });
+    return { ...c, items: activeItems };
+  });
+
+  const recList = await loadRecomendados(data.recomendados);
+  const hero = $('heroCarousel');
+  if (hero) hero.style.display = recList.length > 0 ? '' : 'none';
+  renderCarousel(recList);
   renderCategories();
   renderMenu();
   initPopup();
-  $('brandLink').onclick = (e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+  $('brandLink').onclick = (e) => {
+    e.preventDefault();
+    const dlg = $('productPopup');
+    if (dlg.open) dlg.close();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    history.replaceState(null, '', location.pathname + location.search);
+  };
   const hash = location.hash.slice(1);
   if (hash && state.cats.some((c) => c.id === hash)) goToCategory(hash);
   initHeavyScroll();

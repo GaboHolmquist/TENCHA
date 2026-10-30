@@ -1,0 +1,1270 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Admin | Tencha Matcheria</title>
+  <meta name="theme-color" content="#09090b">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="logo.png">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --bg: #09090b;
+      --card-bg: rgba(22, 22, 27, 0.75);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --text: #f4f4f5;
+      --muted: #a1a1aa;
+      --matcha: #98a584;
+      --matcha-glow: rgba(152, 165, 132, 0.25);
+      --danger: #ef4444;
+      --success: #10b981;
+      --radius: 14px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Outfit', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    .jp { font-family: 'Noto Sans JP', sans-serif; }
+
+    /* Topbar */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: rgba(9, 9, 11, 0.85);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--card-border);
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .topbar-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: inherit;
+    }
+    .topbar-brand img { height: 28px; width: auto; display: block; }
+    .topbar-badge {
+      font-size: 0.72rem;
+      background: rgba(152, 165, 132, 0.15);
+      color: var(--matcha);
+      padding: 3px 8px;
+      border-radius: 99px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      border: 1px solid rgba(152, 165, 132, 0.3);
+    }
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .btn {
+      font-family: inherit;
+      font-size: 0.85rem;
+      font-weight: 500;
+      padding: 8px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--card-border);
+      background: var(--card-bg);
+      color: var(--text);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      text-decoration: none;
+    }
+    .btn:hover { background: rgba(255, 255, 255, 0.1); }
+    .btn-primary {
+      background: var(--matcha);
+      color: #09090b;
+      border-color: var(--matcha);
+      font-weight: 600;
+    }
+    .btn-primary:hover { background: #a7b593; }
+    .btn-danger {
+      background: rgba(239, 68, 68, 0.12);
+      color: #f87171;
+      border-color: rgba(239, 68, 68, 0.3);
+    }
+    .btn-danger:hover { background: rgba(239, 68, 68, 0.2); }
+    .btn-sm { padding: 5px 10px; font-size: 0.78rem; border-radius: 6px; }
+
+    /* Login Screen */
+    .login-container {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .login-card {
+      width: 100%;
+      max-width: 380px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      padding: 36px 28px;
+      backdrop-filter: blur(20px);
+      text-align: center;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+    }
+    .login-card img { height: 38px; margin-bottom: 18px; }
+    .login-title { font-size: 1.3rem; font-weight: 600; margin-bottom: 6px; }
+    .login-sub { font-size: 0.85rem; color: var(--muted); margin-bottom: 24px; }
+    .form-group {
+      margin-bottom: 16px;
+      text-align: left;
+    }
+    .form-label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .form-input, .form-select, .form-textarea {
+      width: 100%;
+      padding: 10px 14px;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .form-input:focus, .form-select:focus, .form-textarea:focus {
+      border-color: var(--matcha);
+      box-shadow: 0 0 0 2px var(--matcha-glow);
+    }
+    .form-textarea { resize: vertical; min-height: 80px; }
+    .login-btn {
+      width: 100%;
+      padding: 12px;
+      margin-top: 8px;
+      font-size: 0.95rem;
+      justify-content: center;
+    }
+    .alert-error {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #fca5a5;
+      font-size: 0.82rem;
+      padding: 10px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      text-align: left;
+    }
+
+    /* Admin Dashboard */
+    .dashboard {
+      flex: 1;
+      max-width: 1100px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 24px 16px 80px;
+    }
+
+    /* Stats Bar */
+    .stats-bar {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .stat-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      padding: 14px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .stat-val { font-size: 1.6rem; font-weight: 700; color: var(--text); }
+    .stat-lbl { font-size: 0.76rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+
+    /* Toolbar */
+    .dashboard-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      padding: 14px 18px;
+    }
+    .search-box {
+      flex: 1;
+      min-width: 220px;
+      position: relative;
+    }
+    .search-box input {
+      width: 100%;
+      padding: 9px 14px 9px 36px;
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.88rem;
+      outline: none;
+    }
+    .search-box input:focus { border-color: var(--matcha); }
+    .search-box span {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+    .chips-bar {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      margin-bottom: 24px;
+      scrollbar-width: none;
+    }
+    .chips-bar::-webkit-scrollbar { display: none; }
+    .chip-btn {
+      white-space: nowrap;
+      padding: 6px 14px;
+      border-radius: 99px;
+      border: 1px solid var(--card-border);
+      background: var(--card-bg);
+      color: var(--muted);
+      font-size: 0.82rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .chip-btn.active, .chip-btn:hover {
+      background: var(--matcha);
+      color: #09090b;
+      font-weight: 600;
+      border-color: var(--matcha);
+    }
+
+    /* Sections */
+    .admin-section {
+      margin-bottom: 36px;
+    }
+    .admin-sec-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-bottom: 14px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .admin-sec-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+    }
+    .admin-sec-title small { font-size: 0.85rem; color: var(--muted); font-weight: 400; }
+    .admin-sec-count { font-size: 0.8rem; color: var(--muted); }
+
+    /* Product Grid / Rows */
+    .prod-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+    @media (min-width: 640px) {
+      .prod-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (min-width: 1024px) {
+      .prod-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+
+    .prod-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      transition: border-color 0.2s, opacity 0.2s, transform 0.2s;
+      position: relative;
+    }
+    .prod-card.disabled {
+      opacity: 0.55;
+      border-color: rgba(239, 68, 68, 0.2);
+    }
+    .prod-card-top {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+    }
+    .prod-thumb {
+      width: 64px;
+      height: 64px;
+      border-radius: 10px;
+      object-fit: cover;
+      background: #18181b;
+      flex-shrink: 0;
+      border: 1px solid var(--card-border);
+    }
+    .prod-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .prod-name {
+      font-size: 0.98rem;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .prod-sub {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-top: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .prod-temp-badge {
+      display: inline-block;
+      font-size: 0.72rem;
+      margin-top: 4px;
+      color: var(--matcha);
+    }
+
+    /* Switch Component */
+    .switch-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 8px;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .switch-label {
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .switch-label.on { color: var(--success); }
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 44px;
+      height: 24px;
+    }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: #27272a;
+      transition: .25s;
+      border-radius: 24px;
+      border: 1px solid var(--card-border);
+    }
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 2px;
+      bottom: 2px;
+      background: white;
+      transition: .25s;
+      border-radius: 50%;
+    }
+    input:checked + .slider {
+      background: var(--success);
+      border-color: var(--success);
+    }
+    input:checked + .slider:before {
+      transform: translateX(20px);
+    }
+
+    /* Card Controls */
+    .prod-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .price-input-wrap {
+      flex: 1;
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .price-prefix {
+      position: absolute;
+      left: 10px;
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+    .price-input {
+      width: 100%;
+      padding: 6px 10px 6px 22px;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid var(--card-border);
+      border-radius: 6px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.9rem;
+      font-weight: 600;
+      outline: none;
+    }
+    .price-input:focus { border-color: var(--matcha); }
+
+    /* Recomendados buttons & badges */
+    .btn-rec {
+      width: 100%;
+      justify-content: center;
+      padding: 7px 10px;
+      font-size: 0.8rem;
+      border-radius: 6px;
+      font-weight: 500;
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+    .btn-rec-assign {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px dashed rgba(255, 255, 255, 0.22);
+      color: var(--muted);
+    }
+    .btn-rec-assign:hover {
+      background: rgba(152, 165, 132, 0.15);
+      border-color: var(--matcha);
+      color: var(--text);
+    }
+    .btn-rec-active {
+      background: rgba(234, 179, 8, 0.14);
+      border: 1px solid rgba(234, 179, 8, 0.45);
+      color: #facc15;
+      font-weight: 600;
+    }
+    .btn-rec-active:hover {
+      background: rgba(239, 68, 68, 0.18);
+      border-color: rgba(239, 68, 68, 0.4);
+      color: #f87171;
+    }
+    .badge-limit {
+      background: rgba(239, 68, 68, 0.18);
+      color: #fca5a5;
+      font-size: 0.72rem;
+      padding: 3px 8px;
+      border-radius: 99px;
+      border: 1px solid rgba(239, 68, 68, 0.35);
+      font-weight: 600;
+      letter-spacing: 0.04em;
+    }
+    .badge-count {
+      background: rgba(152, 165, 132, 0.15);
+      color: var(--matcha);
+      font-size: 0.75rem;
+      padding: 3px 8px;
+      border-radius: 99px;
+      border: 1px solid rgba(152, 165, 132, 0.3);
+      font-weight: 600;
+    }
+
+    /* Modal / Drawer */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(8px);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+    }
+    .modal-backdrop.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .modal {
+      width: 100%;
+      max-width: 480px;
+      background: #141418;
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      padding: 24px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.7);
+    }
+    .modal-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--card-border);
+    }
+    .modal-title { font-size: 1.15rem; font-weight: 600; }
+    .modal-close {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 1.4rem;
+      cursor: pointer;
+      line-height: 1;
+    }
+
+    /* Toast Notification */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 200;
+      background: #18181b;
+      border: 1px solid var(--matcha);
+      color: var(--text);
+      padding: 12px 20px;
+      border-radius: 10px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+      font-size: 0.88rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Topbar -->
+  <header class="topbar">
+    <div class="topbar-brand">
+      <img src="logo.png" alt="Tencha Matcheria">
+      <span class="topbar-badge">ADMIN</span>
+    </div>
+    <div class="topbar-actions" id="topbarActions" style="display:none;">
+      <a href="index.html" target="_blank" class="btn btn-sm">Ver Carta ↗</a>
+      <button class="btn btn-sm btn-danger" onclick="handleLogout()">Salir</button>
+    </div>
+  </header>
+
+  <!-- Login View -->
+  <div class="login-container" id="loginView">
+    <div class="login-card">
+      <img src="logo.png" alt="Tencha">
+      <h1 class="login-title">Administración</h1>
+      <p class="login-sub">Inicia sesión con tu cuenta de Supabase</p>
+      <div id="loginError" class="alert-error" style="display:none;"></div>
+      <form id="loginForm" onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label class="form-label">Correo Electrónico</label>
+          <input type="email" id="loginEmail" class="form-input" placeholder="admin@tencha.cl" required autocomplete="email">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Contraseña</label>
+          <input type="password" id="loginPassword" class="form-input" placeholder="••••••••" required autocomplete="current-password">
+        </div>
+        <button type="submit" class="btn btn-primary login-btn" id="loginSubmitBtn">Ingresar al Panel</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Dashboard View -->
+  <main class="dashboard" id="dashboardView" style="display:none;">
+    
+    <!-- Stats -->
+    <div class="stats-bar">
+      <div class="stat-card">
+        <span class="stat-val" id="statTotal">-</span>
+        <span class="stat-lbl">Productos en Menú</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-val" style="color:var(--success)" id="statActive">-</span>
+        <span class="stat-lbl">Activos en Vivo</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-val" style="color:var(--danger)" id="statInactive">-</span>
+        <span class="stat-lbl">Pausados / Apagados</span>
+      </div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="dashboard-toolbar">
+      <div class="search-box">
+        <span>🔍</span>
+        <input type="text" id="searchInput" placeholder="Buscar producto..." oninput="handleSearch(this.value)">
+      </div>
+      <button class="btn btn-primary" onclick="openNewProductModal()">+ Añadir Producto</button>
+    </div>
+
+    <!-- Category Chips Quick Jump -->
+    <div class="chips-bar" id="categoryChips"></div>
+
+    <!-- Dynamic Sections Container -->
+    <div id="sectionsContainer"></div>
+
+  </main>
+
+  <!-- Edit / New Product Modal -->
+  <div class="modal-backdrop" id="productModal">
+    <div class="modal">
+      <div class="modal-head">
+        <h2 class="modal-title" id="modalTitle">Producto</h2>
+        <button class="modal-close" onclick="closeProductModal()">✕</button>
+      </div>
+      <form id="productForm" onsubmit="saveProduct(event)">
+        <input type="hidden" id="editId">
+        <input type="hidden" id="editIsRec">
+        <div class="form-group" id="catSelectGroup">
+          <label class="form-label">Categoría</label>
+          <select id="prodCat" class="form-select" required></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Nombre del Producto</label>
+          <input type="text" id="prodNombre" class="form-input" placeholder="Ej: Koicha" required>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div class="form-group">
+            <label class="form-label">Subtítulo (opcional)</label>
+            <input type="text" id="prodSub" class="form-input" placeholder="Ej: Matcha y agua">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Japonés / Kanji (opcional)</label>
+            <input type="text" id="prodJp" class="form-input jp" placeholder="Ej: 濃茶">
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div class="form-group">
+            <label class="form-label">Precio (CLP)</label>
+            <input type="number" id="prodPrecio" class="form-input" placeholder="4500" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Temperatura</label>
+            <select id="prodTemp" class="form-select">
+              <option value="">Ninguna</option>
+              <option value="caliente">🔥 Caliente</option>
+              <option value="frio">❄️ Frío</option>
+              <option value="ambos">❄️🔥 Ambos</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group" id="folderGroup">
+          <label class="form-label">Carpeta de Fotos (en productos/)</label>
+          <input type="text" id="prodCarpeta" class="form-input" placeholder="01-nombre-carpeta" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Descripción</label>
+          <textarea id="prodDesc" class="form-textarea" placeholder="Descripción e ingredientes del producto..."></textarea>
+        </div>
+        <div class="switch-wrap" style="margin-bottom:20px;">
+          <span class="switch-label">Disponible en carta</span>
+          <label class="switch">
+            <input type="checkbox" id="prodDisp" checked>
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <button type="button" class="btn btn-danger btn-sm" id="btnDeleteProd" onclick="deleteCurrentProduct()" style="display:none;">Eliminar</button>
+          <div style="display:flex;gap:8px;margin-left:auto;">
+            <button type="button" class="btn" onclick="closeProductModal()">Cancelar</button>
+            <button type="submit" class="btn btn-primary" id="btnSaveProd">Guardar</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast">
+    <span id="toastIcon">✓</span>
+    <span id="toastMsg">Guardado con éxito</span>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://bkubdcfhgivgmckblsyt.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_5SF5J8y_r1KWJTU1aT_43w_VEKhdiqS';
+
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let state = {
+      user: null,
+      categories: [],
+      products: [],
+      recomendados: [],
+      searchTerm: ''
+    };
+
+    // ---------- Auth ----------
+    async function checkSession() {
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      if (session) {
+        state.user = session.user;
+        showDashboard();
+      } else {
+        showLogin();
+      }
+    }
+
+    async function handleLogin(e) {
+      e.preventDefault();
+      const email = document.getElementById('loginEmail').value.trim();
+      const password = document.getElementById('loginPassword').value;
+      const btn = document.getElementById('loginSubmitBtn');
+      const errEl = document.getElementById('loginError');
+
+      btn.disabled = true;
+      btn.textContent = 'Verificando...';
+      errEl.style.display = 'none';
+
+      try {
+        const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        state.user = data.user;
+        showDashboard();
+      } catch (err) {
+        errEl.textContent = 'Error: ' + (err.message || 'Credenciales inválidas');
+        errEl.style.display = 'block';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Ingresar al Panel';
+      }
+    }
+
+    async function handleLogout() {
+      await supabaseClient.auth.signOut();
+      state.user = null;
+      showLogin();
+    }
+
+    function showLogin() {
+      document.getElementById('loginView').style.display = 'flex';
+      document.getElementById('dashboardView').style.display = 'none';
+      document.getElementById('topbarActions').style.display = 'none';
+    }
+
+    function showDashboard() {
+      document.getElementById('loginView').style.display = 'none';
+      document.getElementById('dashboardView').style.display = 'block';
+      document.getElementById('topbarActions').style.display = 'flex';
+      loadData();
+    }
+
+    // ---------- Data Fetching ----------
+    async function loadData() {
+      try {
+        const [catsRes, prodsRes, recsRes] = await Promise.all([
+          supabaseClient.from('categorias').select('*').order('orden', { ascending: true }),
+          supabaseClient.from('productos').select('*').order('orden', { ascending: true }),
+          supabaseClient.from('recomendados').select('*').order('orden', { ascending: true })
+        ]);
+
+        if (catsRes.error) throw catsRes.error;
+        if (prodsRes.error) throw prodsRes.error;
+        if (recsRes.error) throw recsRes.error;
+
+        state.categories = catsRes.data;
+        state.products = prodsRes.data;
+        state.recomendados = recsRes.data;
+
+        renderDashboard();
+        updateStats();
+      } catch (err) {
+        showToast('Error al cargar datos: ' + err.message, false);
+      }
+    }
+
+    function updateStats() {
+      const total = state.products.length;
+      const active = state.products.filter(p => p.disponible).length;
+      const inactive = total - active;
+
+      document.getElementById('statTotal').textContent = total;
+      document.getElementById('statActive').textContent = active;
+      document.getElementById('statInactive').textContent = inactive;
+    }
+
+    // ---------- Render ----------
+    function renderDashboard() {
+      renderCategoryChips();
+      renderSections();
+    }
+
+    function renderCategoryChips() {
+      const wrap = document.getElementById('categoryChips');
+      wrap.innerHTML = `
+        <button class="chip-btn ${state.searchTerm === '' ? 'active' : ''}" onclick="filterCat('all')">Todos</button>
+        <button class="chip-btn" onclick="scrollToSec('sec-rec')">★ Recomendados</button>
+      ` + state.categories.map(c => `
+        <button class="chip-btn" onclick="scrollToSec('sec-${c.id}')">${c.nombre}</button>
+      `).join('');
+    }
+
+    function scrollToSec(id) {
+      const el = document.getElementById(id);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function isProductInRecomendados(prod) {
+      if (!prod) return false;
+      const pName = (prod.nombre || '').toLowerCase().trim();
+      return state.recomendados.some(r => {
+        const rName = (r.nombre || '').toLowerCase().trim();
+        if (rName === pName) return true;
+        if (r.carpeta && prod.carpeta && r.carpeta.includes(prod.carpeta)) return true;
+        return false;
+      });
+    }
+
+    function getRecomendadoMatch(prod) {
+      if (!prod) return null;
+      const pName = (prod.nombre || '').toLowerCase().trim();
+      return state.recomendados.find(r => {
+        const rName = (r.nombre || '').toLowerCase().trim();
+        if (rName === pName) return true;
+        if (r.carpeta && prod.carpeta && r.carpeta.includes(prod.carpeta)) return true;
+        return false;
+      });
+    }
+
+    function renderSections() {
+      const container = document.getElementById('sectionsContainer');
+      const q = state.searchTerm.toLowerCase();
+      let html = '';
+
+      // 1. Recomendados (siempre visible si hay o coincide búsqueda)
+      const recsFiltered = state.recomendados.filter(r => !q || r.nombre.toLowerCase().includes(q));
+      if (recsFiltered.length > 0 || (!q && state.recomendados.length > 0)) {
+        const isLimit = state.recomendados.length >= 5;
+        html += `
+          <section class="admin-section" id="sec-rec">
+            <div class="admin-sec-header">
+              <h2 class="admin-sec-title">★ Recomendados <small>Carrusel de portada</small></h2>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span class="badge-count">${state.recomendados.length} / 5</span>
+                ${isLimit ? '<span class="badge-limit">LÍMITE ALCANZADO (5/5)</span>' : ''}
+              </div>
+            </div>
+            <div class="prod-grid">
+              ${recsFiltered.map(r => renderProductCard(r, true)).join('')}
+            </div>
+          </section>
+        `;
+      }
+
+      // 2. Categorías
+      state.categories.forEach(c => {
+        const prods = state.products.filter(p => p.categoria_id === c.id && (!q || p.nombre.toLowerCase().includes(q) || (p.sub && p.sub.toLowerCase().includes(q))));
+        if (q && prods.length === 0) return;
+
+        html += `
+          <section class="admin-section" id="sec-${c.id}">
+            <div class="admin-sec-header">
+              <h2 class="admin-sec-title">${c.nombre} <small class="jp">${c.jp || ''}</small></h2>
+              <span class="admin-sec-count">${prods.length} productos</span>
+            </div>
+            <div class="prod-grid">
+              ${prods.map(p => renderProductCard(p, false, c.carpeta)).join('')}
+            </div>
+          </section>
+        `;
+      });
+
+      container.innerHTML = html;
+    }
+
+    function renderProductCard(item, isRec = false, catCarpeta = '') {
+      let imgSrc = 'logo.png';
+      if (isRec) {
+        imgSrc = `${item.carpeta.endsWith('/') ? item.carpeta : item.carpeta + '/'}foto.webp`;
+      } else {
+        imgSrc = `productos/${catCarpeta}/${item.carpeta}/foto.webp`;
+      }
+
+      const tempIcon = item.temperatura === 'caliente' ? '🔥 Caliente' : item.temperatura === 'frio' ? '❄️ Frío' : item.temperatura === 'ambos' ? '❄️🔥 Ambos' : '';
+
+      // Botón de recomendados
+      let recButtonHtml = '';
+      if (isRec) {
+        recButtonHtml = `
+          <button class="btn btn-sm btn-danger" style="width:100%;margin-top:8px;justify-content:center;" onclick="removeRecomendado(${item.id})">
+            ✕ Quitar de recomendados
+          </button>
+        `;
+      } else {
+        const inRec = isProductInRecomendados(item);
+        if (inRec) {
+          recButtonHtml = `
+            <button class="btn btn-rec btn-rec-active" style="margin-top:8px;" onclick="removeRecomendadoByProdId(${item.id})" title="Haz clic para quitarlo de recomendados y dejarlo solo en su categoría">
+              ★ En Recomendados (Quitar)
+            </button>
+          `;
+        } else {
+          if (state.recomendados.length >= 5) {
+            recButtonHtml = `
+              <button class="btn btn-rec btn-rec-assign" style="margin-top:8px;opacity:0.55;" onclick="showLimitAlert()" title="Límite alcanzado (máx 5)">
+                ☆ Asignar a Recomendados
+              </button>
+            `;
+          } else {
+            recButtonHtml = `
+              <button class="btn btn-rec btn-rec-assign" style="margin-top:8px;" onclick="assignToRecomendados(${item.id}, '${catCarpeta}')">
+                ☆ Asignar a Recomendados
+              </button>
+            `;
+          }
+        }
+      }
+
+      return `
+        <div class="prod-card ${item.disponible ? '' : 'disabled'}" id="card-${isRec ? 'rec' : 'prod'}-${item.id}">
+          <div class="prod-card-top">
+            <img class="prod-thumb" src="${imgSrc}" onerror="this.onerror=null;this.src='logo.png';" alt="${item.nombre}">
+            <div class="prod-info">
+              <div class="prod-name" title="${item.nombre}">${item.nombre}</div>
+              <div class="prod-sub">${item.sub || item.jp || 'Sin subtítulo'}</div>
+              ${tempIcon ? `<span class="prod-temp-badge">${tempIcon}</span>` : ''}
+            </div>
+            <button class="btn btn-sm" onclick="openEditModal(${item.id}, ${isRec})">✏️</button>
+          </div>
+
+          <div class="switch-wrap">
+            <span class="switch-label ${item.disponible ? 'on' : ''}" id="lbl-${isRec ? 'rec' : 'prod'}-${item.id}">
+              ${item.disponible ? '● Visible en carta' : '○ Pausado / Apagado'}
+            </span>
+            <label class="switch">
+              <input type="checkbox" ${item.disponible ? 'checked' : ''} onchange="toggleAvailability(${item.id}, ${isRec}, this.checked)">
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="prod-controls">
+            <div class="price-input-wrap">
+              <span class="price-prefix">$</span>
+              <input type="number" class="price-input" value="${item.precio}" onblur="savePrice(${item.id}, ${isRec}, this.value)" onkeydown="if(event.key==='Enter')this.blur()">
+            </div>
+            <button class="btn btn-sm" onclick="openEditModal(${item.id}, ${isRec})">Detalles</button>
+          </div>
+
+          ${recButtonHtml}
+        </div>
+      `;
+    }
+
+    // ---------- Recomendados Actions (Máximo 5) ----------
+    function showLimitAlert() {
+      showToast('⚠️ Límite de 5 recomendados alcanzado. Quita uno antes de añadir otro.', false);
+    }
+
+    async function assignToRecomendados(prodId, catCarpeta) {
+      if (state.recomendados.length >= 5) {
+        showLimitAlert();
+        return;
+      }
+      const prod = state.products.find(p => p.id === prodId);
+      if (!prod) return;
+
+      const newRec = {
+        nombre: prod.nombre,
+        sub: prod.sub || '',
+        jp: prod.jp || '',
+        precio: prod.precio,
+        temperatura: prod.temperatura || '',
+        tags: prod.tags || [],
+        disponible: prod.disponible,
+        descripcion: prod.descripcion || '',
+        carpeta: `productos/${catCarpeta}/${prod.carpeta}`,
+        tiene_video: false,
+        orden: state.recomendados.length + 1
+      };
+
+      try {
+        const { data, error } = await supabaseClient.from('recomendados').insert([newRec]).select();
+        if (error) throw error;
+        if (data && data[0]) state.recomendados.push(data[0]);
+        showToast(`★ "${prod.nombre}" añadido a recomendados (${state.recomendados.length}/5)`);
+        renderDashboard();
+      } catch (err) {
+        showToast('Error al asignar a recomendados: ' + err.message, false);
+      }
+    }
+
+    async function removeRecomendado(recId) {
+      const rec = state.recomendados.find(r => r.id === recId);
+      const name = rec ? rec.nombre : 'Producto';
+      try {
+        const { error } = await supabaseClient.from('recomendados').delete().eq('id', recId);
+        if (error) throw error;
+        state.recomendados = state.recomendados.filter(r => r.id !== recId);
+        showToast(`✓ "${name}" quitado de recomendados (${state.recomendados.length}/5)`);
+        renderDashboard();
+      } catch (err) {
+        showToast('Error al quitar de recomendados: ' + err.message, false);
+      }
+    }
+
+    async function removeRecomendadoByProdId(prodId) {
+      const prod = state.products.find(p => p.id === prodId);
+      if (!prod) return;
+      const recMatch = getRecomendadoMatch(prod);
+      if (!recMatch) return;
+      await removeRecomendado(recMatch.id);
+    }
+
+    // ---------- Quick Updates ----------
+    async function toggleAvailability(id, isRec, checked) {
+      const table = isRec ? 'recomendados' : 'productos';
+      const card = document.getElementById(`card-${isRec ? 'rec' : 'prod'}-${id}`);
+      const lbl = document.getElementById(`lbl-${isRec ? 'rec' : 'prod'}-${id}`);
+
+      if (card) card.classList.toggle('disabled', !checked);
+      if (lbl) {
+        lbl.className = 'switch-label ' + (checked ? 'on' : '');
+        lbl.textContent = checked ? '● Visible en carta' : '○ Pausado / Apagado';
+      }
+
+      try {
+        const { error } = await supabaseClient.from(table).update({ disponible: checked }).eq('id', id);
+        if (error) throw error;
+        
+        // Actualiza estado local
+        const list = isRec ? state.recomendados : state.products;
+        const item = list.find(x => x.id === id);
+        if (item) item.disponible = checked;
+
+        // Si se actualizó un producto de catálogo, sincronizar con recomendados si existe
+        if (!isRec && item) {
+          const recMatch = getRecomendadoMatch(item);
+          if (recMatch) {
+            await supabaseClient.from('recomendados').update({ disponible: checked }).eq('id', recMatch.id);
+            recMatch.disponible = checked;
+            const recCard = document.getElementById(`card-rec-${recMatch.id}`);
+            const recLbl = document.getElementById(`lbl-rec-${recMatch.id}`);
+            if (recCard) recCard.classList.toggle('disabled', !checked);
+            if (recLbl) {
+              recLbl.className = 'switch-label ' + (checked ? 'on' : '');
+              recLbl.textContent = checked ? '● Visible en carta' : '○ Pausado / Apagado';
+            }
+          }
+        }
+
+        updateStats();
+        showToast(checked ? 'Producto activado' : 'Producto pausado (oculto en carta)');
+      } catch (err) {
+        showToast('Error al actualizar: ' + err.message, false);
+      }
+    }
+
+    async function savePrice(id, isRec, val) {
+      const precio = parseInt(val, 10);
+      if (isNaN(precio) || precio < 0) return;
+      const table = isRec ? 'recomendados' : 'productos';
+
+      try {
+        const { error } = await supabaseClient.from(table).update({ precio }).eq('id', id);
+        if (error) throw error;
+
+        const list = isRec ? state.recomendados : state.products;
+        const item = list.find(x => x.id === id);
+        if (item) item.precio = precio;
+
+        // Si se actualizó un producto de catálogo, sincronizar con recomendados si existe
+        if (!isRec && item) {
+          const recMatch = getRecomendadoMatch(item);
+          if (recMatch) {
+            await supabaseClient.from('recomendados').update({ precio }).eq('id', recMatch.id);
+            recMatch.precio = precio;
+            const recInput = document.querySelector(`#card-rec-${recMatch.id} .price-input`);
+            if (recInput) recInput.value = precio;
+          }
+        }
+
+        showToast('Precio actualizado a $' + precio.toLocaleString('es-CL'));
+      } catch (err) {
+        showToast('Error al actualizar precio: ' + err.message, false);
+      }
+    }
+
+    // ---------- Modal / Product CRUD ----------
+    function openNewProductModal() {
+      document.getElementById('modalTitle').textContent = 'Añadir Nuevo Producto';
+      document.getElementById('editId').value = '';
+      document.getElementById('editIsRec').value = 'false';
+      document.getElementById('catSelectGroup').style.display = 'block';
+      document.getElementById('folderGroup').style.display = 'block';
+      document.getElementById('btnDeleteProd').style.display = 'none';
+
+      // Populate category options
+      const catSelect = document.getElementById('prodCat');
+      catSelect.innerHTML = state.categories.map(c => `<option value="${c.id}">${c.nombre}</option>`).join('');
+
+      document.getElementById('prodNombre').value = '';
+      document.getElementById('prodSub').value = '';
+      document.getElementById('prodJp').value = '';
+      document.getElementById('prodPrecio').value = '';
+      document.getElementById('prodTemp').value = '';
+      document.getElementById('prodCarpeta').value = '';
+      document.getElementById('prodDesc').value = '';
+      document.getElementById('prodDisp').checked = true;
+
+      document.getElementById('productModal').classList.add('open');
+    }
+
+    function openEditModal(id, isRec) {
+      const list = isRec ? state.recomendados : state.products;
+      const item = list.find(x => x.id === id);
+      if (!item) return;
+
+      document.getElementById('modalTitle').textContent = 'Editar ' + item.nombre;
+      document.getElementById('editId').value = id;
+      document.getElementById('editIsRec').value = isRec ? 'true' : 'false';
+
+      const catSelectGroup = document.getElementById('catSelectGroup');
+      if (isRec) {
+        catSelectGroup.style.display = 'none';
+      } else {
+        catSelectGroup.style.display = 'block';
+        const catSelect = document.getElementById('prodCat');
+        catSelect.innerHTML = state.categories.map(c => `<option value="${c.id}" ${c.id === item.categoria_id ? 'selected' : ''}>${c.nombre}</option>`).join('');
+      }
+
+      document.getElementById('folderGroup').style.display = 'block';
+      document.getElementById('prodCarpeta').value = item.carpeta || '';
+      document.getElementById('prodNombre').value = item.nombre || '';
+      document.getElementById('prodSub').value = item.sub || '';
+      document.getElementById('prodJp').value = item.jp || '';
+      document.getElementById('prodPrecio').value = item.precio || 0;
+      document.getElementById('prodTemp').value = item.temperatura || '';
+      document.getElementById('prodDesc').value = item.descripcion || '';
+      document.getElementById('prodDisp').checked = !!item.disponible;
+
+      document.getElementById('btnDeleteProd').style.display = isRec ? 'none' : 'block';
+      document.getElementById('productModal').classList.add('open');
+    }
+
+    function closeProductModal() {
+      document.getElementById('productModal').classList.remove('open');
+    }
+
+    async function saveProduct(e) {
+      e.preventDefault();
+      const id = document.getElementById('editId').value;
+      const isRec = document.getElementById('editIsRec').value === 'true';
+      const btn = document.getElementById('btnSaveProd');
+      btn.disabled = true;
+
+      const nombre = document.getElementById('prodNombre').value.trim();
+      const sub = document.getElementById('prodSub').value.trim();
+      const jp = document.getElementById('prodJp').value.trim();
+      const precio = parseInt(document.getElementById('prodPrecio').value, 10);
+      const temperatura = document.getElementById('prodTemp').value;
+      const carpeta = document.getElementById('prodCarpeta').value.trim();
+      const descripcion = document.getElementById('prodDesc').value.trim();
+      const disponible = document.getElementById('prodDisp').checked;
+
+      let tags = [];
+      if (temperatura === 'caliente') tags = ['caliente'];
+      else if (temperatura === 'frio') tags = ['frio'];
+      else if (temperatura === 'ambos') tags = ['frio', 'caliente'];
+
+      const payload = { nombre, sub, jp, precio, temperatura, tags, carpeta, descripcion, disponible };
+
+      try {
+        if (id) {
+          // Update
+          const table = isRec ? 'recomendados' : 'productos';
+          if (!isRec) payload.categoria_id = document.getElementById('prodCat').value;
+          const { error } = await supabaseClient.from(table).update(payload).eq('id', id);
+          if (error) throw error;
+          showToast('Producto actualizado con éxito');
+        } else {
+          // Insert
+          payload.categoria_id = document.getElementById('prodCat').value;
+          payload.orden = (state.products.length + 1);
+          const { error } = await supabaseClient.from('productos').insert([payload]);
+          if (error) throw error;
+          showToast('Nuevo producto añadido con éxito');
+        }
+        closeProductModal();
+        await loadData();
+      } catch (err) {
+        showToast('Error al guardar: ' + err.message, false);
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    async function deleteCurrentProduct() {
+      const id = document.getElementById('editId').value;
+      if (!id || !confirm('¿Estás seguro de que deseas eliminar este producto de la base de datos?')) return;
+
+      try {
+        const { error } = await supabaseClient.from('productos').delete().eq('id', id);
+        if (error) throw error;
+        showToast('Producto eliminado');
+        closeProductModal();
+        await loadData();
+      } catch (err) {
+        showToast('Error al eliminar: ' + err.message, false);
+      }
+    }
+
+    function handleSearch(val) {
+      state.searchTerm = val.trim();
+      renderSections();
+    }
+
+    // ---------- Toast ----------
+    let toastTimeout;
+    function showToast(msg, isSuccess = true) {
+      const toast = document.getElementById('toast');
+      const icon = document.getElementById('toastIcon');
+      const text = document.getElementById('toastMsg');
+
+      icon.textContent = isSuccess ? '✓' : '⚠️';
+      icon.style.color = isSuccess ? 'var(--matcha)' : 'var(--danger)';
+      toast.style.borderColor = isSuccess ? 'var(--matcha)' : 'var(--danger)';
+      text.textContent = msg;
+
+      toast.classList.add('show');
+      clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+
+    // Run on startup
+    checkSession();
+  </script>
+</body>
+</html>

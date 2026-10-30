@@ -1,471 +1,588 @@
 {
-  "destacados": [
-    "mezclas/09-tradicional-matcha-latte",
-    "mezclas/03-ube-matcha-latte",
-    "mezclas/01-yuzu-coco"
+  "recomendados": [
+    {
+      "nombre": "Kabocha Latte",
+      "precio": 4800,
+      "temperatura": "caliente",
+      "disponible": true,
+      "tiene_video": true,
+      "carpeta": "productos/recomendados/1",
+      "descripcion": "Kabocha squash asada y especiada con leche vaporizada y el toque justo de dulzor.\n\nIngredientes:\n• Puré de zapallo kabocha asado\n• Canela, jengibre y nuez moscada\n• Leche a elección",
+      "jp": "南瓜",
+      "sub": "Edición especial",
+      "tags": [
+        "caliente"
+      ]
+    },
+    {
+      "nombre": "Ube Matcha Latte",
+      "precio": 5200,
+      "temperatura": "ambos",
+      "disponible": true,
+      "tiene_video": false,
+      "carpeta": "productos/02-creaciones-de-matcha/03-ube-matcha-latte",
+      "descripcion": "Combinación perfecta con el tubérculo dulce y avainillado. (Ube, Matcha, Leche Entera o Vegetal)",
+      "jp": "紅芋",
+      "sub": "Leche entera o vegetal",
+      "tags": [
+        "frio",
+        "caliente"
+      ]
+    },
+    {
+      "nombre": "Yuzu Coco",
+      "precio": 5500,
+      "temperatura": "ambos",
+      "disponible": true,
+      "tiene_video": false,
+      "carpeta": "productos/02-creaciones-de-matcha/01-yuzu-coco",
+      "descripcion": "Matcha, Leche de Coco y Yuzu.",
+      "jp": "柚子",
+      "sub": "",
+      "tags": [
+        "frio",
+        "caliente"
+      ]
+    }
   ],
   "categorias": [
     {
       "id": "matcha-puro",
       "carpeta": "01-matcha-puro",
-      "jp": "純抹茶",
       "nombre": "Matcha Puro",
+      "jp": "純抹茶",
       "intro": "Solo matcha y agua, batido a mano. Elige tu matcha: Gokou, Kagoshima, Tencha, Samidori.",
       "items": [
         {
-          "carpeta": "01-koicha",
           "nombre": "Koicha",
           "precio": 4500,
+          "temperatura": "caliente",
+          "disponible": true,
+          "descripcion": "Matcha espeso, la forma más pura de tomarlo. (Matcha y Agua)",
+          "carpeta": "01-koicha",
+          "jp": "濃茶",
+          "sub": "Matcha y agua",
           "tags": [
             "caliente"
-          ],
-          "descripcion": "Matcha espeso, la forma más pura de tomarlo. (Matcha y Agua)",
-          "jp": "濃茶",
-          "sub": "Matcha y agua"
+          ]
         },
         {
-          "carpeta": "02-usucha",
           "nombre": "Usucha",
           "precio": 4200,
+          "temperatura": "caliente",
+          "disponible": true,
+          "descripcion": "Matcha ligero, para quienes recién comienzan. (Matcha y Agua)",
+          "carpeta": "02-usucha",
+          "jp": "薄茶",
+          "sub": "Matcha y agua",
           "tags": [
             "caliente"
-          ],
-          "descripcion": "Matcha ligero, para quienes recién comienzan. (Matcha y Agua)",
-          "jp": "薄茶",
-          "sub": "Matcha y agua"
+          ]
         }
       ]
     },
     {
       "id": "mezclas",
       "carpeta": "02-creaciones-de-matcha",
-      "jp": "抹茶ミックス",
       "nombre": "Creaciones de Matcha",
+      "jp": "抹茶ミックス",
       "items": [
         {
-          "carpeta": "01-yuzu-coco",
           "nombre": "Yuzu Coco",
           "precio": 5500,
+          "temperatura": "ambos",
+          "disponible": true,
+          "descripcion": "Matcha, Leche de Coco y Yuzu.",
+          "carpeta": "01-yuzu-coco",
+          "jp": "柚子",
+          "sub": "",
           "tags": [
             "frio",
             "caliente"
-          ],
-          "descripcion": "Matcha, Leche de Coco y Yuzu.",
-          "jp": "柚子",
-          "sub": ""
+          ]
         },
         {
-          "carpeta": "02-matcha-tonica-naranja",
           "nombre": "Matcha Tónica Naranja",
           "precio": 5200,
+          "temperatura": "frio",
+          "disponible": true,
+          "descripcion": "Una bebida refrescante. (Matcha, Agua Tónica, Jugo de Naranja)",
+          "carpeta": "02-matcha-tonica-naranja",
+          "jp": "抹茶トニック",
+          "sub": "",
           "tags": [
             "frio"
-          ],
-          "descripcion": "Una bebida refrescante. (Matcha, Agua Tónica, Jugo de Naranja)",
-          "jp": "抹茶トニック",
-          "sub": ""
+          ]
         },
         {
-          "carpeta": "03-ube-matcha-latte",
           "nombre": "Ube Matcha Latte",
           "precio": 5200,
+          "temperatura": "ambos",
+          "disponible": true,
+          "descripcion": "Combinación perfecta con el tubérculo dulce y avainillado. (Ube, Matcha, Leche Entera o Vegetal)",
+          "carpeta": "03-ube-matcha-latte",
+          "jp": "紅芋",
+          "sub": "Leche entera o vegetal",
           "tags": [
             "frio",
             "caliente"
-          ],
-          "descripcion": "Combinación perfecta con el tubérculo dulce y avainillado. (Ube, Matcha, Leche Entera o Vegetal)",
-          "jp": "紅芋",
-          "sub": "Leche entera o vegetal"
+          ]
         },
         {
-          "carpeta": "04-fruit-matcha",
           "nombre": "Fruit Matcha",
           "precio": 4800,
+          "temperatura": "ambos",
+          "disponible": true,
+          "descripcion": "Matcha, puré de fruta, leche vegetal o entera.",
+          "carpeta": "04-fruit-matcha",
+          "jp": "果物抹茶",
+          "sub": "Leche entera o vegetal",
           "tags": [
             "frio",
             "caliente"
-          ],
-          "descripcion": "Matcha, puré de fruta, leche vegetal o entera.",
-          "jp": "果物抹茶",
-          "sub": "Leche entera o vegetal"
+          ]
         },
         {
-          "carpeta": "05-chai-matcha",
           "nombre": "Chai Matcha",
           "precio": 4800,
+          "temperatura": "ambos",
+          "disponible": true,
+          "descripcion": "Una fusión para los amantes del chai. (Matcha, Chai, Leche Entera o Vegetal)",
+          "carpeta": "05-chai-matcha",
+          "jp": "チャイ抹茶",
+          "sub": "Leche entera o vegetal",
           "tags": [
             "frio",
             "caliente"
-          ],
-          "descripcion": "Una fusión para los amantes del chai. (Matcha, Chai, Leche Entera o Vegetal)",
-          "jp": "チャイ抹茶",
-          "sub": "Leche entera o vegetal"
+          ]
         },
         {
-          "carpeta": "06-maqui-matcha",
           "nombre": "Maqui Matcha",
           "precio": 5200,
+          "temperatura": "ambos",
+          "disponible": true,
+          "descripcion": "Una combinación perfecta de la región, sin olvidarnos de Chilito lindo. (Matcha, Syrup de Maqui, Leche Entera o Vegetal)",
+          "carpeta": "06-maqui-matcha",
+          "jp": "マキ抹茶",
+          "sub": "Leche entera o vegetal",
           "tags": [
             "frio",
             "caliente"
-          ],
-          "descripcion": "Una combinación perfecta de la región, sin olvidarnos de Chilito lindo. (Matcha, Syrup de Maqui, Leche Entera o Vegetal)",
-          "jp": "マキ抹茶",
-          "sub": "Leche entera o vegetal"
+          ]
         },
         {
-          "carpeta": "07-dirty-matcha",
           "nombre": "Dirty Matcha",
           "precio": 5200,
+          "temperatura": "ambos",
+          "disponible": true,
+          "descripcion": "Para quienes no se deciden entre el café y el matcha. (Matcha, Shot de Espresso, Leche Entera o Vegetal)",
+          "carpeta": "07-dirty-matcha",
+          "jp": "ダーティー抹茶",
+          "sub": "Leche entera o vegetal",
           "tags": [
             "frio",
             "caliente"
-          ],
-          "descripcion": "Para quienes no se deciden entre el café y el matcha. (Matcha, Shot de Espresso, Leche Entera o Vegetal)",
-          "jp": "ダーティー抹茶",
-          "sub": "Leche entera o vegetal"
+          ]
         },
         {
-          "carpeta": "08-choco-matcha",
           "nombre": "Choco Matcha",
           "precio": 5200,
+          "temperatura": "ambos",
+          "disponible": true,
+          "descripcion": "Capas de chocolate y matcha, acompañado de leche vegetal o entera.",
+          "carpeta": "08-choco-matcha",
+          "jp": "チョコ抹茶",
+          "sub": "Leche entera o vegetal",
           "tags": [
             "frio",
             "caliente"
-          ],
-          "descripcion": "Capas de chocolate y matcha, acompañado de leche vegetal o entera.",
-          "jp": "チョコ抹茶",
-          "sub": "Leche entera o vegetal"
+          ]
         },
         {
-          "carpeta": "09-tradicional-matcha-latte",
           "nombre": "Tradicional Matcha Latte",
           "precio": 4800,
+          "temperatura": "ambos",
+          "disponible": true,
+          "descripcion": "Matcha, Leche Entera o Vegetal.",
+          "carpeta": "09-tradicional-matcha-latte",
+          "jp": "抹茶ラテ",
+          "sub": "Leche entera o vegetal",
           "tags": [
             "frio",
             "caliente"
-          ],
-          "descripcion": "Matcha, Leche Entera o Vegetal.",
-          "jp": "抹茶ラテ",
-          "sub": "Leche entera o vegetal"
+          ]
         }
       ]
     },
     {
       "id": "cafe",
       "carpeta": "03-cafe-de-especialidad",
-      "jp": "スペシャルティコーヒー",
       "nombre": "Café de Especialidad",
+      "jp": "スペシャルティコーヒー",
       "intro": "Nuestro amigo FACTO COFFEE se suma a esta experiencia con una propuesta de tueste de precisión, para que siempre disfrutes de un sabor único en cada taza de café.",
       "items": [
         {
-          "carpeta": "01-espresso",
           "nombre": "Espresso",
           "precio": 2500,
+          "temperatura": "ambos",
+          "disponible": true,
+          "descripcion": "",
+          "carpeta": "01-espresso",
+          "jp": "エスプレッソ",
+          "sub": "",
           "tags": [
             "frio",
             "caliente"
-          ],
-          "descripcion": "",
-          "jp": "エスプレッソ",
-          "sub": ""
+          ]
         },
         {
-          "carpeta": "02-cafe-con-leche-grande",
           "nombre": "Café con Leche Grande",
           "precio": 4500,
+          "temperatura": "ambos",
+          "disponible": true,
+          "descripcion": "",
+          "carpeta": "02-cafe-con-leche-grande",
+          "jp": "カフェラテ",
+          "sub": "",
           "tags": [
             "frio",
             "caliente"
-          ],
-          "descripcion": "",
-          "jp": "カフェラテ",
-          "sub": ""
+          ]
         },
         {
-          "carpeta": "03-cafe-con-leche-mediano",
           "nombre": "Café con Leche Mediano",
           "precio": 3800,
+          "temperatura": "ambos",
+          "disponible": true,
+          "descripcion": "",
+          "carpeta": "03-cafe-con-leche-mediano",
+          "jp": "カフェラテ",
+          "sub": "",
           "tags": [
             "frio",
             "caliente"
-          ],
-          "descripcion": "",
-          "jp": "カフェラテ",
-          "sub": ""
+          ]
         },
         {
-          "carpeta": "04-filtrado",
           "nombre": "Filtrado",
           "precio": 4500,
+          "temperatura": "ambos",
+          "disponible": true,
+          "descripcion": "",
+          "carpeta": "04-filtrado",
+          "jp": "ドリップ",
+          "sub": "",
           "tags": [
             "frio",
             "caliente"
-          ],
-          "descripcion": "",
-          "jp": "ドリップ",
-          "sub": ""
+          ]
         },
         {
-          "carpeta": "05-moka",
           "nombre": "Moka",
           "precio": 4900,
+          "temperatura": "ambos",
+          "disponible": true,
+          "descripcion": "",
+          "carpeta": "05-moka",
+          "jp": "モカ",
+          "sub": "",
           "tags": [
             "frio",
             "caliente"
-          ],
-          "descripcion": "",
-          "jp": "モカ",
-          "sub": ""
+          ]
         },
         {
-          "carpeta": "06-cold-brew",
           "nombre": "Cold Brew",
           "precio": 3200,
+          "temperatura": "frio",
+          "disponible": true,
+          "descripcion": "Café infusionado en frío.",
+          "carpeta": "06-cold-brew",
+          "jp": "水出し珈琲",
+          "sub": "",
           "tags": [
             "frio"
-          ],
-          "descripcion": "Café infusionado en frío.",
-          "jp": "水出し珈琲",
-          "sub": ""
+          ]
         },
         {
-          "carpeta": "07-iced-espresso",
           "nombre": "Iced Espresso",
           "precio": 4900,
+          "temperatura": "frio",
+          "disponible": true,
+          "descripcion": "Combina tu espresso con: Naranja, Tónica o Ginger.",
+          "carpeta": "07-iced-espresso",
+          "jp": "アイスエスプレッソ",
+          "sub": "",
           "tags": [
             "frio"
-          ],
-          "descripcion": "Combina tu espresso con: Naranja, Tónica o Ginger.",
-          "jp": "アイスエスプレッソ",
-          "sub": ""
+          ]
         }
       ]
     },
     {
       "id": "otras",
       "carpeta": "04-otras-bebidas",
-      "jp": "他のドリンク",
       "nombre": "Otras Bebidas",
+      "jp": "他のドリンク",
       "items": [
         {
-          "carpeta": "01-chokoreto",
           "nombre": "Chokorēto",
           "precio": 4800,
-          "tags": [],
+          "temperatura": "",
+          "disponible": true,
           "descripcion": "Desde los mejores granos de cacao de la selva amazónica, para disfrutar un chocolate de calidad.",
+          "carpeta": "01-chokoreto",
           "jp": "チョコレート",
-          "sub": ""
+          "sub": "",
+          "tags": []
         },
         {
-          "carpeta": "02-hojicha-latte",
           "nombre": "Hojicha Latte",
           "precio": 3800,
+          "temperatura": "ambos",
+          "disponible": true,
+          "descripcion": "Cuando se trata de poca cafeína, té con un aroma ahumado y a nuez.",
+          "carpeta": "02-hojicha-latte",
+          "jp": "ほうじ茶",
+          "sub": "",
           "tags": [
             "frio",
             "caliente"
-          ],
-          "descripcion": "Cuando se trata de poca cafeína, té con un aroma ahumado y a nuez.",
-          "jp": "ほうじ茶",
-          "sub": ""
+          ]
         },
         {
-          "carpeta": "03-masala-chai-latte",
           "nombre": "Masala Chai Latte",
           "precio": 3800,
+          "temperatura": "ambos",
+          "disponible": true,
+          "descripcion": "Bebida de origen indio a base de té negro y especias.",
+          "carpeta": "03-masala-chai-latte",
+          "jp": "マサラチャイ",
+          "sub": "",
           "tags": [
             "frio",
             "caliente"
-          ],
-          "descripcion": "Bebida de origen indio a base de té negro y especias.",
-          "jp": "マサラチャイ",
-          "sub": ""
+          ]
         },
         {
-          "carpeta": "04-sencha",
           "nombre": "Sencha",
           "precio": 2500,
+          "temperatura": "caliente",
+          "disponible": true,
+          "descripcion": "El té de todos los días en Japón, herbáceo y fresco.",
+          "carpeta": "04-sencha",
+          "jp": "煎茶",
+          "sub": "",
           "tags": [
             "caliente"
-          ],
-          "descripcion": "El té de todos los días en Japón, herbáceo y fresco.",
-          "jp": "煎茶",
-          "sub": ""
+          ]
         },
         {
-          "carpeta": "05-rooibos",
           "nombre": "Rooibos",
           "precio": 2500,
+          "temperatura": "ambos",
+          "disponible": true,
+          "descripcion": "Infusión sudafricana de sabor suave, dulce y reconfortante.",
+          "carpeta": "05-rooibos",
+          "jp": "ルイボス",
+          "sub": "",
           "tags": [
             "frio",
             "caliente"
-          ],
-          "descripcion": "Infusión sudafricana de sabor suave, dulce y reconfortante.",
-          "jp": "ルイボス",
-          "sub": ""
+          ]
         },
         {
-          "carpeta": "06-jugos-naturales",
           "nombre": "Jugos Naturales",
           "precio": 4200,
-          "tags": [],
+          "temperatura": "",
+          "disponible": true,
           "descripcion": "",
+          "carpeta": "06-jugos-naturales",
           "jp": "ジュース",
-          "sub": ""
+          "sub": "",
+          "tags": []
         },
         {
-          "carpeta": "07-kohi",
           "nombre": "Kohi",
           "precio": 3900,
-          "tags": [],
+          "temperatura": "",
+          "disponible": true,
           "descripcion": "",
+          "carpeta": "07-kohi",
           "jp": "コーヒー",
-          "sub": ""
+          "sub": "",
+          "tags": []
         },
         {
-          "carpeta": "08-ginger",
           "nombre": "Ginger",
           "precio": 3500,
-          "tags": [],
+          "temperatura": "",
+          "disponible": true,
           "descripcion": "Opciones: Chai y Original.",
+          "carpeta": "08-ginger",
           "jp": "ジンジャー",
-          "sub": "Chai u Original"
+          "sub": "Chai u Original",
+          "tags": []
         }
       ]
     },
     {
       "id": "sandos",
       "carpeta": "05-sandos",
-      "jp": "お供に",
       "nombre": "Sandos",
+      "jp": "お供に",
       "items": [
         {
-          "carpeta": "01-pulled-beef",
           "nombre": "Pulled Beef",
           "precio": 9900,
-          "tags": [],
+          "temperatura": "",
+          "disponible": true,
           "descripcion": "Pan de leche, Carne de Ternera Deshilachada, Coleslaw Tencha.",
+          "carpeta": "01-pulled-beef",
           "jp": "牛肉サンド",
-          "sub": ""
+          "sub": "",
+          "tags": []
         },
         {
-          "carpeta": "02-pulled-pork",
           "nombre": "Pulled Pork",
           "precio": 8900,
-          "tags": [],
+          "temperatura": "",
+          "disponible": true,
           "descripcion": "Pan de leche, Carne de Cerdo Deshilachado, Coleslaw Tencha.",
+          "carpeta": "02-pulled-pork",
           "jp": "豚肉サンド",
-          "sub": ""
+          "sub": "",
+          "tags": []
         },
         {
-          "carpeta": "03-tamago",
           "nombre": "Tamago",
           "precio": 6900,
-          "tags": [],
+          "temperatura": "",
+          "disponible": true,
           "descripcion": "Pan de Leche, Huevo, Mayonesa Kewpie y Cebollín.",
+          "carpeta": "03-tamago",
           "jp": "卵サンド",
-          "sub": ""
+          "sub": "",
+          "tags": []
         },
         {
-          "carpeta": "04-pan-de-queso",
           "nombre": "Pan de Queso",
           "precio": 4500,
-          "tags": [],
+          "temperatura": "",
+          "disponible": true,
           "descripcion": "",
+          "carpeta": "04-pan-de-queso",
           "jp": "チーズパン",
-          "sub": ""
+          "sub": "",
+          "tags": []
         }
       ]
     },
     {
       "id": "yakigashi",
       "carpeta": "06-yakigashi",
-      "jp": "焼き菓子",
       "nombre": "Yakigashi",
+      "jp": "焼き菓子",
       "items": [
         {
-          "carpeta": "01-bombones-de-chocolate",
           "nombre": "Bombones de Chocolate",
           "precio": 4900,
-          "tags": [],
+          "temperatura": "",
+          "disponible": true,
           "descripcion": "",
+          "carpeta": "01-bombones-de-chocolate",
           "jp": "ボンボン",
-          "sub": ""
+          "sub": "",
+          "tags": []
         },
         {
-          "carpeta": "02-cheesecake",
           "nombre": "Cheesecake",
           "precio": 4900,
-          "tags": [],
+          "temperatura": "",
+          "disponible": true,
           "descripcion": "",
+          "carpeta": "02-cheesecake",
           "jp": "チーズケーキ",
-          "sub": ""
+          "sub": "",
+          "tags": []
         },
         {
-          "carpeta": "03-blondie",
           "nombre": "Blondie",
           "precio": 3600,
-          "tags": [],
+          "temperatura": "",
+          "disponible": true,
           "descripcion": "",
+          "carpeta": "03-blondie",
           "jp": "ブロンディ",
-          "sub": ""
+          "sub": "",
+          "tags": []
         },
         {
-          "carpeta": "04-cookie",
           "nombre": "Cookie",
           "precio": 2900,
-          "tags": [],
+          "temperatura": "",
+          "disponible": true,
           "descripcion": "",
+          "carpeta": "04-cookie",
+          "jp": "クッキー",
+          "sub": "",
+          "tags": [],
           "variantes": [
             {
               "nombre": "2 unidades por",
               "precio": 5000
             }
-          ],
-          "jp": "クッキー",
-          "sub": ""
+          ]
         },
         {
-          "carpeta": "05-mochis",
           "nombre": "Mochis",
           "precio": 2900,
-          "tags": [],
+          "temperatura": "",
+          "disponible": true,
           "descripcion": "",
+          "carpeta": "05-mochis",
+          "jp": "餅",
+          "sub": "",
+          "tags": [],
           "variantes": [
             {
               "nombre": "3 unidades por",
               "precio": 7900
             }
-          ],
-          "jp": "餅",
-          "sub": ""
+          ]
         },
         {
-          "carpeta": "06-muffin",
           "nombre": "Muffin",
           "precio": 2900,
-          "tags": [],
+          "temperatura": "",
+          "disponible": true,
           "descripcion": "",
+          "carpeta": "06-muffin",
           "jp": "マフィン",
-          "sub": ""
+          "sub": "",
+          "tags": []
         },
         {
-          "carpeta": "07-canele",
           "nombre": "Canelé",
           "precio": 2900,
-          "tags": [],
+          "temperatura": "",
+          "disponible": true,
           "descripcion": "",
+          "carpeta": "07-canele",
           "jp": "カヌレ",
-          "sub": ""
+          "sub": "",
+          "tags": []
         },
         {
-          "carpeta": "08-conchocolates",
           "nombre": "Conchocolate",
           "precio": 8900,
-          "tags": [],
+          "temperatura": "",
+          "disponible": true,
           "descripcion": "",
+          "carpeta": "08-conchocolates",
           "jp": "チョコレート",
-          "sub": ""
+          "sub": "",
+          "tags": []
         }
       ]
     }
