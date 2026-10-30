@@ -199,6 +199,38 @@ body, .slide, .cat-card, .item-card, .popup-card {
 .footer { text-align: center; color: var(--faint); padding: 40px 0 60px; font-size: .8rem; letter-spacing: .1em; display: flex; flex-direction: column; align-items: center; }
 .footer a { color: var(--faint); text-decoration: none; }
 .footer a span { color: var(--text); font-weight: 600; }
+.footer a.ig-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 18px;
+  margin-bottom: 24px;
+  border-radius: 999px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  transition: transform 0.2s ease, border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
+}
+.footer a.ig-pill span { color: inherit; font-weight: 400; }
+.footer a.ig-pill:hover,
+.footer a.ig-pill:active {
+  color: var(--text);
+  border-color: rgba(169, 196, 124, 0.35);
+  background: rgba(255, 248, 235, 0.07);
+  transform: translateY(-1px);
+}
+.ig-icon {
+  width: 15px;
+  height: 15px;
+  color: var(--matcha);
+  flex-shrink: 0;
+}
 .stealth-dots {
   display: inline-block;
   margin-top: 20px;

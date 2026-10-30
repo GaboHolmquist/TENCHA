@@ -628,7 +628,7 @@
         <span>🔍</span>
         <input type="text" id="searchInput" placeholder="Buscar producto..." oninput="handleSearch(this.value)">
       </div>
-      <button class="btn btn-primary" onclick="openNewProductModal()">+ Añadir Producto</button>
+      <button class="btn btn-primary" id="btnNewProduct" style="display:none;" onclick="openNewProductModal()">+ Añadir Producto</button>
     </div>
 
     <!-- Category Chips Quick Jump -->
@@ -825,6 +825,12 @@
       showLogin();
     }
 
+    const SUPERADMIN_EMAILS = ['admin@korifilms.cl'];
+    function canAddOrDelete() {
+      if (!state.user || !state.user.email) return false;
+      return SUPERADMIN_EMAILS.includes(state.user.email.toLowerCase().trim());
+    }
+
     function showLogin() {
       document.getElementById('loginView').style.display = 'flex';
       document.getElementById('dashboardView').style.display = 'none';
@@ -835,6 +841,8 @@
       document.getElementById('loginView').style.display = 'none';
       document.getElementById('dashboardView').style.display = 'block';
       document.getElementById('topbarActions').style.display = 'flex';
+      const btnNew = document.getElementById('btnNewProduct');
+      if (btnNew) btnNew.style.display = canAddOrDelete() ? 'inline-flex' : 'none';
       loadData();
     }
 
@@ -1187,6 +1195,10 @@
 
     // ---------- Modal / Product CRUD ----------
     function openNewProductModal() {
+      if (!canAddOrDelete()) {
+        showToast('No tienes permisos para añadir productos nuevos', false);
+        return;
+      }
       document.getElementById('modalTitle').textContent = 'Añadir Nuevo Producto';
       document.getElementById('editId').value = '';
       document.getElementById('editIsRec').value = 'false';
@@ -1228,7 +1240,7 @@
         catSelect.innerHTML = state.categories.map(c => `<option value="${esc(c.id)}" ${c.id === item.categoria_id ? 'selected' : ''}>${esc(c.nombre)}</option>`).join('');
       }
 
-      document.getElementById('folderGroup').style.display = 'block';
+      document.getElementById('folderGroup').style.display = canAddOrDelete() ? 'block' : 'none';
       document.getElementById('prodCarpeta').value = item.carpeta || '';
       document.getElementById('prodNombre').value = item.nombre || '';
       document.getElementById('prodSub').value = item.sub || '';
@@ -1238,7 +1250,7 @@
       document.getElementById('prodDesc').value = item.descripcion || '';
       document.getElementById('prodDisp').checked = !!item.disponible;
 
-      document.getElementById('btnDeleteProd').style.display = isRec ? 'none' : 'block';
+      document.getElementById('btnDeleteProd').style.display = (isRec || !canAddOrDelete()) ? 'none' : 'block';
       document.getElementById('productModal').classList.add('open');
     }
 
@@ -1250,6 +1262,10 @@
       e.preventDefault();
       const id = document.getElementById('editId').value;
       const isRec = document.getElementById('editIsRec').value === 'true';
+      if (!id && !canAddOrDelete()) {
+        showToast('No tienes permisos para crear productos nuevos', false);
+        return;
+      }
       const btn = document.getElementById('btnSaveProd');
       btn.disabled = true;
 
@@ -1273,9 +1289,16 @@
         if (id) {
           // Update
           const table = isRec ? 'recomendados' : 'productos';
+          const prevItem = !isRec ? state.products.find(x => x.id === Number(id)) : null;
+          const recMatch = prevItem ? getRecomendadoMatch(prevItem) : null;
           if (!isRec) payload.categoria_id = document.getElementById('prodCat').value;
           const { error } = await supabaseClient.from(table).update(payload).eq('id', id);
           if (error) throw error;
+          if (recMatch) {
+            await supabaseClient.from('recomendados').update({
+              nombre, sub, jp, precio, temperatura, tags, descripcion, disponible
+            }).eq('id', recMatch.id);
+          }
           showToast('Producto actualizado con éxito');
         } else {
           // Insert
@@ -1295,6 +1318,10 @@
     }
 
     async function deleteCurrentProduct() {
+      if (!canAddOrDelete()) {
+        showToast('No tienes permisos para eliminar productos', false);
+        return;
+      }
       const id = document.getElementById('editId').value;
       if (!id || !confirm('¿Estás seguro de que deseas eliminar este producto de la base de datos?')) return;
 
