@@ -629,7 +629,7 @@ async function init() {
   };
   const hash = location.hash.slice(1);
   if (hash && state.cats.some((c) => c.id === hash)) goToCategory(hash);
-  initHeavyScroll();
+  initPullToRefresh();
 
   // Bloquea clic derecho / pulsación larga y arrastrar imágenes o videos
   document.addEventListener('contextmenu', (e) => {
@@ -638,56 +638,41 @@ async function init() {
   document.addEventListener('dragstart', (e) => e.preventDefault());
 }
 
-// ---------- Scroll con fricción y Pull-to-Refresh suave ----------
-function initHeavyScroll() {
-  const SPEED = 0.95;      // 5% de fricción al deslizar (95% de velocidad 1:1)
-  const FRICTION = 0.95;   // 5% de desaceleración por cuadro al soltar
-  let lastY = 0, lastT = 0, vel = 0, raf = 0, touching = false, horiz = null;
+// ---------- Pull-to-Refresh suave con scroll 100% nativo a 120Hz ----------
+function initPullToRefresh() {
   const dlg = $('productPopup');
   const ptrCircle = $('ptrCircle');
   const ptrArc = $('ptrArc');
-  let pullDistance = 0, isPulling = false, startY0 = 0;
+  if (!ptrCircle) return;
 
-  const maxScroll = () => Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+  let startY = 0, isPulling = false, pullDistance = 0;
 
-  const glide = () => {
-    if (touching || Math.abs(vel) < 0.25) { raf = 0; return; }
-    window.scrollTo(0, Math.min(maxScroll(), Math.max(0, window.scrollY + vel)));
-    vel *= FRICTION;
-    raf = requestAnimationFrame(glide);
-  };
-
-  let xStart = 0, yStart = 0;
   window.addEventListener('touchstart', (e) => {
     if (dlg.open || e.touches.length !== 1) return;
-    cancelAnimationFrame(raf);
-    raf = 0;
-    vel = 0;
-    touching = true;
-    horiz = null;
-    pullDistance = 0;
-    isPulling = false;
-    xStart = e.touches[0].clientX;
-    yStart = startY0 = lastY = e.touches[0].clientY;
-    lastT = performance.now();
+    // Solo registrar inicio si está en el tope superior
+    if (window.scrollY <= 1) {
+      startY = e.touches[0].clientY;
+      isPulling = false;
+      pullDistance = 0;
+    } else {
+      startY = -1;
+    }
   }, { passive: true });
 
   window.addEventListener('touchmove', (e) => {
-    if (!touching || dlg.open || e.touches.length !== 1) return;
-    const x = e.touches[0].clientX;
+    if (startY < 0 || dlg.open || e.touches.length !== 1) return;
     const y = e.touches[0].clientY;
-    if (horiz === null && (Math.abs(x - xStart) > 6 || Math.abs(y - yStart) > 6)) {
-      const inHScroll = e.target.closest('#carousel, #catBar');
-      horiz = inHScroll && Math.abs(x - xStart) > Math.abs(y - yStart);
-    }
-    if (horiz) return;
+    const dy = y - startY;
 
-    // Pull-to-refresh: si está en el tope superior y desliza hacia abajo
-    if (window.scrollY <= 0 && y > startY0 && ptrCircle) {
+    // Solo interceptar si el usuario está arriba del todo y arrastra hacia abajo
+    if (window.scrollY <= 0 && dy > 4) {
+      const inHScroll = e.target.closest('#carousel, #catBar');
+      if (inHScroll) return;
+
       isPulling = true;
-      e.preventDefault();
-      const rawPull = (y - startY0);
-      pullDistance = Math.min(85, rawPull * 0.42);
+      e.preventDefault(); // Solo previene cuando realmente activa el pull-to-refresh
+
+      pullDistance = Math.min(85, (dy - 4) * 0.42);
       const progress = Math.min(1, pullDistance / 50);
       ptrCircle.style.transform = `translateY(${pullDistance - 36}px) scale(${0.7 + progress * 0.3})`;
       ptrCircle.style.opacity = String(progress);
@@ -696,33 +681,18 @@ function initHeavyScroll() {
         const svg = ptrCircle.querySelector('.ptr-svg');
         if (svg) svg.style.transform = `rotate(${-90 + progress * 360}deg)`;
       }
-      return;
     }
-
-    if (isPulling) return;
-    e.preventDefault();
-    const now = performance.now();
-    const dt = Math.max(8, now - lastT);
-    const dy = (lastY - y) * SPEED;
-    window.scrollTo(0, Math.min(maxScroll(), Math.max(0, window.scrollY + dy)));
-    const instVel = (dy / dt) * 16.6;
-    vel = vel * 0.3 + instVel * 0.7;
-    lastY = y;
-    lastT = now;
   }, { passive: false });
 
   const endTouch = () => {
-    if (!touching) return;
-    touching = false;
-    if (isPulling && ptrCircle) {
+    startY = -1;
+    if (isPulling) {
       if (pullDistance >= 50) {
-        // Umbral alcanzado: activar animación de giro y recargar la página
+        // Umbral alcanzado: activar animación de giro y recargar
         ptrCircle.classList.add('refreshing');
         if (ptrArc) ptrArc.style.strokeDashoffset = '16';
         if (navigator.vibrate) navigator.vibrate(20);
-        setTimeout(() => {
-          location.reload();
-        }, 400);
+        setTimeout(() => location.reload(), 400);
         return;
       } else {
         // Regresar a la posición inicial
@@ -732,8 +702,8 @@ function initHeavyScroll() {
       isPulling = false;
       pullDistance = 0;
     }
-    if (!horiz && Math.abs(vel) >= 0.4) raf = requestAnimationFrame(glide);
   };
+
   window.addEventListener('touchend', endTouch, { passive: true });
   window.addEventListener('touchcancel', endTouch, { passive: true });
 }

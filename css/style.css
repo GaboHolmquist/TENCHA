@@ -12,9 +12,14 @@
   --radius: 30px;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
-html { overscroll-behavior-y: none; overflow-x: clip; }
-body { overflow-x: clip; }
+html {
+  overscroll-behavior-y: none;
+  overflow-x: hidden;
+  -webkit-text-size-adjust: 100%;
+}
 body {
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
   font-family: 'Outfit', system-ui, sans-serif;
   background: var(--bg);
   color: var(--text);
@@ -34,8 +39,9 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .topbar {
   position: sticky; top: 0; z-index: 30;
   display: flex; justify-content: center; align-items: center; padding: 11px 14px;
-  background: rgba(31, 29, 26, .82); backdrop-filter: blur(14px);
+  background: rgba(31, 29, 26, .82); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
   border-bottom: 1px solid var(--border);
+  transform: translateZ(0);
 }
 .brand { text-decoration: none; color: var(--text); display: flex; align-items: center; justify-content: center; line-height: 1; }
 .brand-logo { height: 36px; max-height: 36px; width: auto; display: block; pointer-events: none; }
@@ -185,6 +191,7 @@ body, .slide, .cat-card, .item-card, .popup-card {
   background: rgba(42, 37, 31, .9); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--border);
   scrollbar-width: none;
+  transform: translateZ(0);
 }
 .cat-bar::-webkit-scrollbar { display: none; }
 .chip {
