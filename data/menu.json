@@ -19,7 +19,7 @@
       "precio": 5200,
       "temperatura": "ambos",
       "disponible": true,
-      "tiene_video": false,
+      "tiene_video": true,
       "carpeta": "productos/02-creaciones-de-matcha/03-ube-matcha-latte",
       "descripcion": "Combinación perfecta con el tubérculo dulce y avainillado. (Ube, Matcha, Leche Entera o Vegetal)",
       "jp": "紅芋",
@@ -34,7 +34,7 @@
       "precio": 5500,
       "temperatura": "ambos",
       "disponible": true,
-      "tiene_video": false,
+      "tiene_video": true,
       "carpeta": "productos/02-creaciones-de-matcha/01-yuzu-coco",
       "descripcion": "Matcha, Leche de Coco y Yuzu.",
       "jp": "柚子",
@@ -64,7 +64,8 @@
           "sub": "Matcha y agua",
           "tags": [
             "caliente"
-          ]
+          ],
+          "tiene_video": true
         },
         {
           "nombre": "Usucha",
@@ -77,7 +78,8 @@
           "sub": "Matcha y agua",
           "tags": [
             "caliente"
-          ]
+          ],
+          "tiene_video": true
         }
       ]
     },
@@ -99,7 +101,8 @@
           "tags": [
             "frio",
             "caliente"
-          ]
+          ],
+          "tiene_video": true
         },
         {
           "nombre": "Matcha Tónica Naranja",
@@ -112,7 +115,8 @@
           "sub": "",
           "tags": [
             "frio"
-          ]
+          ],
+          "tiene_video": true
         },
         {
           "nombre": "Ube Matcha Latte",
@@ -126,7 +130,8 @@
           "tags": [
             "frio",
             "caliente"
-          ]
+          ],
+          "tiene_video": true
         },
         {
           "nombre": "Fruit Matcha",
@@ -140,7 +145,8 @@
           "tags": [
             "frio",
             "caliente"
-          ]
+          ],
+          "tiene_video": true
         },
         {
           "nombre": "Chai Matcha",
@@ -154,7 +160,8 @@
           "tags": [
             "frio",
             "caliente"
-          ]
+          ],
+          "tiene_video": true
         },
         {
           "nombre": "Maqui Matcha",
@@ -168,7 +175,8 @@
           "tags": [
             "frio",
             "caliente"
-          ]
+          ],
+          "tiene_video": true
         },
         {
           "nombre": "Dirty Matcha",
@@ -182,7 +190,8 @@
           "tags": [
             "frio",
             "caliente"
-          ]
+          ],
+          "tiene_video": true
         },
         {
           "nombre": "Choco Matcha",
@@ -196,7 +205,8 @@
           "tags": [
             "frio",
             "caliente"
-          ]
+          ],
+          "tiene_video": true
         },
         {
           "nombre": "Tradicional Matcha Latte",
@@ -210,7 +220,8 @@
           "tags": [
             "frio",
             "caliente"
-          ]
+          ],
+          "tiene_video": true
         }
       ]
     },

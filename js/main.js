@@ -18,12 +18,11 @@ const nameBlock = (es, sub, jp) =>
 // Normaliza texto (sin tildes ni mayúsculas) para comparar nombres
 const norm = (s = '') => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
 
-// Caché en memoria de imágenes y del video de recomendado 1 para que se abra de forma inmediata
+// Caché en memoria de imágenes y videos de productos para reproducción instantánea
 const imgCache = new Map();
 const videoCache = new Map();
 
-function preloadVideo(url) {
-  if (videoCache.has(url)) return;
+function createVideoElement(url) {
   const v = document.createElement('video');
   Object.assign(v, {
     autoplay: true,
@@ -36,11 +35,29 @@ function preloadVideo(url) {
   v.setAttribute('muted', '');
   v.setAttribute('playsinline', '');
   v.src = url;
-  v.load();
-  videoCache.set(url, v);
+  return v;
 }
 
-function preloadItemMedia(item) {
+function preloadVideo(url) {
+  if (!url) return null;
+  if (videoCache.has(url)) return videoCache.get(url);
+  const v = createVideoElement(url);
+  const entry = { url, video: v, ready: false, failed: false };
+  const markReady = () => {
+    entry.ready = true;
+    entry.failed = false;
+  };
+  v.addEventListener('loadeddata', markReady);
+  v.addEventListener('canplay', markReady);
+  v.addEventListener('error', () => {
+    entry.failed = true;
+  });
+  v.load();
+  videoCache.set(url, entry);
+  return entry;
+}
+
+function preloadItemMedia(item, includeVideo = false) {
   if (!item) return;
   const bases = [item.base, item.fallbackBase].filter(Boolean);
   bases.forEach((b) => {
@@ -52,11 +69,13 @@ function preloadItemMedia(item) {
       imgCache.set(url, im);
     }
   });
+  if (includeVideo && item.hasVideo && item.videoUrl) {
+    preloadVideo(item.videoUrl);
+  }
 }
 
-// Carga una imagen (prioriza WebP ultraligero y cae a JPG o a la foto del producto del menú)
+// Carga una imagen sin texto placeholder (prioriza WebP ultraligero y cae a JPG o a la foto del producto del menú)
 function mediaImg(src, item, alt, highPriority = false) {
-  const ph = `<div class="ph"><span>抹</span></div>`;
   const wrap = document.createElement('div');
   wrap.style.cssText = 'width:100%;height:100%';
   const bases = [item.base, item.fallbackBase].filter(Boolean);
@@ -68,12 +87,11 @@ function mediaImg(src, item, alt, highPriority = false) {
   const img = new Image();
   img.className = 'media-fill';
   img.draggable = false;
-  img.alt = alt || item.nombre;
+  img.alt = alt || item.nombre || '';
   img.decoding = 'async';
   img.loading = 'eager';
   if (highPriority) img.fetchPriority = 'high';
 
-  // Si ya está en caché y cargada, la inserta directo sin pasar por el placeholder del kanji
   const cached = candidates.map((u) => imgCache.get(u)).find((im) => im && im.complete && im.naturalWidth > 0);
   if (cached) {
     img.src = cached.src;
@@ -81,18 +99,16 @@ function mediaImg(src, item, alt, highPriority = false) {
     return wrap;
   }
 
-  wrap.innerHTML = ph;
   let idx = 0;
   img.onload = () => {
     imgCache.set(img.src, img);
-    wrap.innerHTML = '';
-    wrap.appendChild(img);
   };
   img.onerror = () => {
     idx += 1;
     if (idx < candidates.length) img.src = candidates[idx];
   };
   if (candidates.length) img.src = candidates[0];
+  wrap.appendChild(img);
   return wrap;
 }
 
@@ -118,6 +134,25 @@ function syncItemTags(item) {
 }
 
 // ---------- Carrusel (productos/recomendados o data/menu.json) ----------
+function resolveRecVideo(rec, base, match) {
+  if (base && base.includes('recomendados/1')) {
+    return { hasVideo: true, videoUrl: base + 'animacion.mp4' };
+  }
+  if (rec && rec.tiene_video && base && !base.includes('recomendados/')) {
+    return { hasVideo: true, videoUrl: base + 'animacion.mp4' };
+  }
+  if (base && (base.includes('01-matcha-puro/') || base.includes('02-creaciones-de-matcha/'))) {
+    return { hasVideo: true, videoUrl: base + 'animacion.mp4' };
+  }
+  if (match && match.hasVideo && match.videoUrl) {
+    return { hasVideo: true, videoUrl: match.videoUrl };
+  }
+  if (rec && rec.tiene_video && base) {
+    return { hasVideo: true, videoUrl: base + 'animacion.mp4' };
+  }
+  return { hasVideo: false, videoUrl: '' };
+}
+
 async function loadRecomendados(jsonRecomendados) {
   if (Array.isArray(jsonRecomendados) && jsonRecomendados.length > 0) {
     const list = [];
@@ -127,6 +162,7 @@ async function loadRecomendados(jsonRecomendados) {
       const base = rec.carpeta ? (rec.carpeta.endsWith('/') ? rec.carpeta : rec.carpeta + '/') : `productos/recomendados/${idx + 1}/`;
       const target = norm(rec.nombre);
       const match = state.items.find((it) => norm(it.nombre) === target);
+      const vInfo = resolveRecVideo(rec, base, match);
       list.push({
         ...rec,
         nombre: rec.nombre,
@@ -135,7 +171,8 @@ async function loadRecomendados(jsonRecomendados) {
         tags: rec.tags || [],
         base,
         fallbackBase: match ? match.base : undefined,
-        hasVideo: !!rec.tiene_video || (idx === 0 && base.includes('recomendados/1'))
+        hasVideo: vInfo.hasVideo,
+        videoUrl: vInfo.videoUrl
       });
     });
     if (list.length > 0) return list;
@@ -159,6 +196,7 @@ async function loadRecomendados(jsonRecomendados) {
       if (!query) continue;
       const target = norm(query);
       const match = state.items.find((it) => norm(it.nombre) === target || norm(it.carpeta.replace(/^\d+-/, '').replace(/-/g, ' ')) === target);
+      const vInfo = resolveRecVideo(info, base, match);
       if (match) {
         list.push({
           ...match,
@@ -166,7 +204,9 @@ async function loadRecomendados(jsonRecomendados) {
           precio: info.precio ? parseInt(info.precio.replace(/\D/g, ''), 10) : match.precio,
           descripcion: info.descripcion || match.descripcion,
           base,
-          fallbackBase: match.base
+          fallbackBase: match.base,
+          hasVideo: vInfo.hasVideo,
+          videoUrl: vInfo.videoUrl
         });
       } else {
         list.push({
@@ -174,7 +214,9 @@ async function loadRecomendados(jsonRecomendados) {
           precio: parseInt((info.precio || '0').replace(/\D/g, ''), 10),
           descripcion: info.descripcion || '',
           tags: [],
-          base
+          base,
+          hasVideo: vInfo.hasVideo,
+          videoUrl: vInfo.videoUrl
         });
       }
     } catch (e) { /* carpeta vacía */ }
@@ -187,12 +229,8 @@ function renderCarousel(list) {
   car.innerHTML = '';
   dots.innerHTML = '';
   if (!list || list.length === 0) return;
-  // Precarga en memoria únicamente el video del recomendado 1 para que al abrir el globo aparezca directo el video sin pasar por la imagen
-  const videoItem = list.find((it) => it.hasVideo) || list[0];
-  if (videoItem && (videoItem.hasVideo || (videoItem.base && videoItem.base.includes('recomendados/1')))) {
-    videoItem.hasVideo = true;
-    preloadVideo(videoItem.base + 'animacion.mp4');
-  }
+  // Precarga en memoria los videos de los recomendados para que al abrir el globo aparezcan al instante
+  list.forEach((it) => preloadItemMedia(it, true));
   list.forEach((item, idx) => {
     const s = document.createElement('div');
     s.className = 'slide';
@@ -329,20 +367,49 @@ function buildSlideMedia(item) {
   const slide = document.createElement('div');
   slide.className = 'popup-slide';
   const bases = [item.base, item.fallbackBase].filter(Boolean);
+  const makePhoto = () => mediaImg((bases[0] || '') + 'foto.webp', item, item.nombre, true);
 
-  // Si es el recomendado 1 con video precargado, inserta directamente el video sin mostrar antes la foto
   if (item.hasVideo) {
-    const videoUrl = item.base + 'animacion.mp4';
-    const cachedVideo = videoCache.get(videoUrl);
-    if (cachedVideo) {
-      cachedVideo.currentTime = 0;
-      slide.appendChild(cachedVideo);
-      cachedVideo.play().catch(() => {});
+    const videoUrl = item.videoUrl || (item.base + 'animacion.mp4');
+    const entry = preloadVideo(videoUrl);
+
+    const mountVideo = () => {
+      const v = (entry.video.parentNode && entry.video.closest('.exiting'))
+        ? createVideoElement(videoUrl)
+        : entry.video;
+      v.currentTime = 0;
+      v.addEventListener('error', () => {
+        if (slide.isConnected) slide.replaceChildren(makePhoto());
+      }, { once: true });
+      slide.replaceChildren(v);
+      const p = v.play();
+      if (p && typeof p.catch === 'function') {
+        p.catch(() => {
+          if (slide.isConnected) slide.replaceChildren(makePhoto());
+        });
+      }
+    };
+
+    if (entry && !entry.failed && (entry.ready || entry.video.readyState >= 2)) {
+      mountVideo();
       return slide;
     }
+
+    // Si el video tarda en cargar o falla, abre la foto de inmediato sin ningún texto
+    slide.appendChild(makePhoto());
+    if (entry && !entry.failed) {
+      const onReady = () => {
+        entry.video.removeEventListener('canplay', onReady);
+        entry.video.removeEventListener('loadeddata', onReady);
+        if (slide.isConnected && !entry.failed) mountVideo();
+      };
+      entry.video.addEventListener('canplay', onReady, { once: true });
+      entry.video.addEventListener('loadeddata', onReady, { once: true });
+    }
+    return slide;
   }
 
-  slide.appendChild(mediaImg(bases[0] + 'foto.webp', item, item.nombre, true));
+  slide.appendChild(makePhoto());
   return slide;
 }
 
@@ -383,14 +450,14 @@ function openItem(idx, list = state.items, dir = 0) {
   state.current = idx;
   state.list = list;
 
-  // Precarga inmediata del producto actual, el siguiente y el anterior (y 2 más adelante/atrás)
+  // Precarga inmediata de fotos y videos del producto actual, el siguiente y el anterior (y 2 más adelante/atrás)
   const n = list.length;
   if (n > 0) {
-    preloadItemMedia(item);
-    preloadItemMedia(list[(idx + 1) % n]);
-    preloadItemMedia(list[(idx - 1 + n) % n]);
-    preloadItemMedia(list[(idx + 2) % n]);
-    preloadItemMedia(list[(idx - 2 + n) % n]);
+    preloadItemMedia(item, true);
+    preloadItemMedia(list[(idx + 1) % n], true);
+    preloadItemMedia(list[(idx - 1 + n) % n], true);
+    preloadItemMedia(list[(idx + 2) % n], true);
+    preloadItemMedia(list[(idx - 2 + n) % n], true);
   }
 
   const dlg = $('productPopup');
@@ -495,6 +562,7 @@ async function init() {
   const data = await fetchMenuData();
   state.items = [];
   state.cats = (data.categorias || []).map((c) => {
+    const hasCatVideo = c.id === 'matcha-puro' || c.id === 'mezclas' || c.carpeta === '01-matcha-puro' || c.carpeta === '02-creaciones-de-matcha';
     const activeItems = (c.items || []).filter((item) => {
       syncItemTags(item);
       return isItemAvailable(item);
@@ -502,8 +570,10 @@ async function init() {
     activeItems.forEach((item) => {
       item.key = c.id + '/' + item.carpeta;
       item.base = `productos/${c.carpeta}/${item.carpeta}/`;
+      item.hasVideo = Boolean(item.tiene_video || hasCatVideo);
+      if (item.hasVideo) item.videoUrl = item.base + 'animacion.mp4';
       state.items.push(item);
-      preloadItemMedia(item);
+      preloadItemMedia(item, true);
     });
     return { ...c, items: activeItems };
   });
