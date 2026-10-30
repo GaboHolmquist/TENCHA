@@ -3,11 +3,17 @@
 
 const state = { cats: [], items: [], current: -1, list: [] };
 const $ = (id) => document.getElementById(id);
-const fmt = (n) => '$' + n.toLocaleString('es-CL');
+const fmt = (n) => '$' + Number(n || 0).toLocaleString('es-CL');
+const esc = (s = '') => String(s)
+  .replace(/&/g, '&amp;')
+  .replace(/</g, '&lt;')
+  .replace(/>/g, '&gt;')
+  .replace(/"/g, '&quot;')
+  .replace(/'/g, '&#39;');
 
 // Bloque de nombre estilo post: Español grande / subtítulo / kanji
 const nameBlock = (es, sub, jp) =>
-  `<div class="name-es">${es}</div>${sub ? `<div class="name-sub">${sub}</div>` : ''}${jp ? `<div class="name-jp jp">${jp}</div>` : ''}`;
+  `<div class="name-es">${esc(es)}</div>${sub ? `<div class="name-sub">${esc(sub)}</div>` : ''}${jp ? `<div class="name-jp jp">${esc(jp)}</div>` : ''}`;
 
 // Normaliza texto (sin tildes ni mayúsculas) para comparar nombres
 const norm = (s = '') => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
@@ -281,7 +287,7 @@ function renderMenu() {
     const sec = document.createElement('section');
     sec.className = 'menu-cat';
     sec.id = 'sec-' + c.id;
-    sec.innerHTML = `<h2 class="menu-cat-head">${nameBlock(c.nombre, '', c.jp)}</h2>${c.intro ? `<p class="intro">${c.intro}</p>` : ''}<div class="item-grid"></div>`;
+    sec.innerHTML = `<h2 class="menu-cat-head">${nameBlock(c.nombre, '', c.jp)}</h2>${c.intro ? `<p class="intro">${esc(c.intro)}</p>` : ''}<div class="item-grid"></div>`;
     const g = sec.querySelector('.item-grid');
     c.items.forEach((item) => {
       const card = document.createElement('button');
@@ -344,7 +350,7 @@ function fillPopupCard(card, item) {
   const mediaBox = card.querySelector('.popup-media');
   mediaBox.replaceChildren(buildSlideMedia(item));
   const tagNames = { frio: '❄ Frío', caliente: '🔥 Caliente' };
-  card.querySelector('.popup-tags').innerHTML = (item.tags || []).map((t) => `<span class="tag">${tagNames[t] || t}</span>`).join('');
+  card.querySelector('.popup-tags').innerHTML = (item.tags || []).map((t) => `<span class="tag">${tagNames[t] || esc(t)}</span>`).join('');
   card.querySelector('.popup-head').innerHTML = nameBlock(item.nombre, item.sub, item.jp);
   const desc = card.querySelector('.popup-desc'), more = card.querySelector('.popup-more'), body = card.querySelector('.popup-body');
   desc.textContent = item.descripcion || '';
@@ -359,7 +365,7 @@ function fillPopupCard(card, item) {
   card.querySelector('.popup-variants').innerHTML = '';
   const v = item.variantes || [];
   card.querySelector('.popup-price').innerHTML = v.length
-    ? `<small>Unidad <b>${fmt(item.precio)}</b></small>` + v.map((x) => `<small>${x.nombre} <b>${fmt(x.precio)}</b></small>`).join('')
+    ? `<small>Unidad <b>${fmt(item.precio)}</b></small>` + v.map((x) => `<small>${esc(x.nombre)} <b>${fmt(x.precio)}</b></small>`).join('')
     : fmt(item.precio);
 }
 

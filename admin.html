@@ -5,11 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Admin | Tencha Matcheria</title>
   <meta name="theme-color" content="#09090b">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://bkubdcfhgivgmckblsyt.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self';">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
   <link rel="icon" type="image/png" href="logo.png">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js" integrity="sha384-YieCqqg9gQufX7+5HcFvCEg/n3KUEdl8/Jb+A6J0npf1mB740VayvwKjTrtCeUoy" crossorigin="anonymous"></script>
   <style>
     :root {
       --bg: #09090b;
@@ -872,6 +873,13 @@
     }
 
     // ---------- Render ----------
+    const esc = (s = '') => String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+
     function renderDashboard() {
       renderCategoryChips();
       renderSections();
@@ -883,7 +891,7 @@
         <button class="chip-btn ${state.searchTerm === '' ? 'active' : ''}" onclick="filterCat('all')">Todos</button>
         <button class="chip-btn" onclick="scrollToSec('sec-rec')">★ Recomendados</button>
       ` + state.categories.map(c => `
-        <button class="chip-btn" onclick="scrollToSec('sec-${c.id}')">${c.nombre}</button>
+        <button class="chip-btn" onclick="scrollToSec('sec-${esc(c.id)}')">${esc(c.nombre)}</button>
       `).join('');
     }
 
@@ -945,9 +953,9 @@
         if (q && prods.length === 0) return;
 
         html += `
-          <section class="admin-section" id="sec-${c.id}">
+          <section class="admin-section" id="sec-${esc(c.id)}">
             <div class="admin-sec-header">
-              <h2 class="admin-sec-title">${c.nombre} <small class="jp">${c.jp || ''}</small></h2>
+              <h2 class="admin-sec-title">${esc(c.nombre)} <small class="jp">${esc(c.jp || '')}</small></h2>
               <span class="admin-sec-count">${prods.length} productos</span>
             </div>
             <div class="prod-grid">
@@ -962,19 +970,22 @@
 
     function renderProductCard(item, isRec = false, catCarpeta = '') {
       let imgSrc = 'logo.png';
+      const safeFolder = String(item.carpeta || '').replace(/[^a-zA-Z0-9_\-\/]/g, '');
+      const safeCatFolder = String(catCarpeta || '').replace(/[^a-zA-Z0-9_\-\/]/g, '');
       if (isRec) {
-        imgSrc = `${item.carpeta.endsWith('/') ? item.carpeta : item.carpeta + '/'}foto.webp`;
+        imgSrc = `${safeFolder.endsWith('/') ? safeFolder : safeFolder + '/'}foto.webp`;
       } else {
-        imgSrc = `productos/${catCarpeta}/${item.carpeta}/foto.webp`;
+        imgSrc = `productos/${safeCatFolder}/${safeFolder}/foto.webp`;
       }
 
+      const numId = Number(item.id) || 0;
       const tempIcon = item.temperatura === 'caliente' ? '🔥 Caliente' : item.temperatura === 'frio' ? '❄️ Frío' : item.temperatura === 'ambos' ? '❄️🔥 Ambos' : '';
 
       // Botón de recomendados
       let recButtonHtml = '';
       if (isRec) {
         recButtonHtml = `
-          <button class="btn btn-sm btn-danger" style="width:100%;margin-top:8px;justify-content:center;" onclick="removeRecomendado(${item.id})">
+          <button class="btn btn-sm btn-danger" style="width:100%;margin-top:8px;justify-content:center;" onclick="removeRecomendado(${numId})">
             ✕ Quitar de recomendados
           </button>
         `;
@@ -982,7 +993,7 @@
         const inRec = isProductInRecomendados(item);
         if (inRec) {
           recButtonHtml = `
-            <button class="btn btn-rec btn-rec-active" style="margin-top:8px;" onclick="removeRecomendadoByProdId(${item.id})" title="Haz clic para quitarlo de recomendados y dejarlo solo en su categoría">
+            <button class="btn btn-rec btn-rec-active" style="margin-top:8px;" onclick="removeRecomendadoByProdId(${numId})" title="Haz clic para quitarlo de recomendados y dejarlo solo en su categoría">
               ★ En Recomendados (Quitar)
             </button>
           `;
@@ -995,7 +1006,7 @@
             `;
           } else {
             recButtonHtml = `
-              <button class="btn btn-rec btn-rec-assign" style="margin-top:8px;" onclick="assignToRecomendados(${item.id}, '${catCarpeta}')">
+              <button class="btn btn-rec btn-rec-assign" style="margin-top:8px;" onclick="assignToRecomendados(${numId})">
                 ☆ Asignar a Recomendados
               </button>
             `;
@@ -1004,23 +1015,23 @@
       }
 
       return `
-        <div class="prod-card ${item.disponible ? '' : 'disabled'}" id="card-${isRec ? 'rec' : 'prod'}-${item.id}">
+        <div class="prod-card ${item.disponible ? '' : 'disabled'}" id="card-${isRec ? 'rec' : 'prod'}-${numId}">
           <div class="prod-card-top">
-            <img class="prod-thumb" src="${imgSrc}" onerror="this.onerror=null;this.src='logo.png';" alt="${item.nombre}">
+            <img class="prod-thumb" src="${esc(imgSrc)}" onerror="this.onerror=null;this.src='logo.png';" alt="${esc(item.nombre)}">
             <div class="prod-info">
-              <div class="prod-name" title="${item.nombre}">${item.nombre}</div>
-              <div class="prod-sub">${item.sub || item.jp || 'Sin subtítulo'}</div>
+              <div class="prod-name" title="${esc(item.nombre)}">${esc(item.nombre)}</div>
+              <div class="prod-sub">${esc(item.sub || item.jp || 'Sin subtítulo')}</div>
               ${tempIcon ? `<span class="prod-temp-badge">${tempIcon}</span>` : ''}
             </div>
-            <button class="btn btn-sm" onclick="openEditModal(${item.id}, ${isRec})">✏️</button>
+            <button class="btn btn-sm" onclick="openEditModal(${numId}, ${isRec})">✏️</button>
           </div>
 
           <div class="switch-wrap">
-            <span class="switch-label ${item.disponible ? 'on' : ''}" id="lbl-${isRec ? 'rec' : 'prod'}-${item.id}">
+            <span class="switch-label ${item.disponible ? 'on' : ''}" id="lbl-${isRec ? 'rec' : 'prod'}-${numId}">
               ${item.disponible ? '● Visible en carta' : '○ Pausado / Apagado'}
             </span>
             <label class="switch">
-              <input type="checkbox" ${item.disponible ? 'checked' : ''} onchange="toggleAvailability(${item.id}, ${isRec}, this.checked)">
+              <input type="checkbox" ${item.disponible ? 'checked' : ''} onchange="toggleAvailability(${numId}, ${isRec}, this.checked)">
               <span class="slider"></span>
             </label>
           </div>
@@ -1028,9 +1039,9 @@
           <div class="prod-controls">
             <div class="price-input-wrap">
               <span class="price-prefix">$</span>
-              <input type="number" class="price-input" value="${item.precio}" onblur="savePrice(${item.id}, ${isRec}, this.value)" onkeydown="if(event.key==='Enter')this.blur()">
+              <input type="number" class="price-input" value="${Number(item.precio) || 0}" onblur="savePrice(${numId}, ${isRec}, this.value)" onkeydown="if(event.key==='Enter')this.blur()">
             </div>
-            <button class="btn btn-sm" onclick="openEditModal(${item.id}, ${isRec})">Detalles</button>
+            <button class="btn btn-sm" onclick="openEditModal(${numId}, ${isRec})">Detalles</button>
           </div>
 
           ${recButtonHtml}
@@ -1043,13 +1054,15 @@
       showToast('⚠️ Límite de 5 recomendados alcanzado. Quita uno antes de añadir otro.', false);
     }
 
-    async function assignToRecomendados(prodId, catCarpeta) {
+    async function assignToRecomendados(prodId) {
       if (state.recomendados.length >= 5) {
         showLimitAlert();
         return;
       }
       const prod = state.products.find(p => p.id === prodId);
       if (!prod) return;
+      const cat = state.categories.find(c => c.id === prod.categoria_id);
+      const catCarpeta = cat ? cat.carpeta : '';
 
       const newRec = {
         nombre: prod.nombre,
@@ -1183,7 +1196,7 @@
 
       // Populate category options
       const catSelect = document.getElementById('prodCat');
-      catSelect.innerHTML = state.categories.map(c => `<option value="${c.id}">${c.nombre}</option>`).join('');
+      catSelect.innerHTML = state.categories.map(c => `<option value="${esc(c.id)}">${esc(c.nombre)}</option>`).join('');
 
       document.getElementById('prodNombre').value = '';
       document.getElementById('prodSub').value = '';
@@ -1212,7 +1225,7 @@
       } else {
         catSelectGroup.style.display = 'block';
         const catSelect = document.getElementById('prodCat');
-        catSelect.innerHTML = state.categories.map(c => `<option value="${c.id}" ${c.id === item.categoria_id ? 'selected' : ''}>${c.nombre}</option>`).join('');
+        catSelect.innerHTML = state.categories.map(c => `<option value="${esc(c.id)}" ${c.id === item.categoria_id ? 'selected' : ''}>${esc(c.nombre)}</option>`).join('');
       }
 
       document.getElementById('folderGroup').style.display = 'block';
