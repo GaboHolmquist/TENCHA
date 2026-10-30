@@ -5,14 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Admin | Tencha Matcheria</title>
   <meta name="theme-color" content="#09090b">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://cdn.jsdelivr.net; worker-src 'self' blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: https://bkubdcfhgivgmckblsyt.supabase.co; connect-src 'self' blob: https://bkubdcfhgivgmckblsyt.supabase.co https://cdn.jsdelivr.net; object-src 'none'; base-uri 'self'; form-action 'self';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: https://bkubdcfhgivgmckblsyt.supabase.co; connect-src 'self' blob: https://bkubdcfhgivgmckblsyt.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self';">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
   <link rel="icon" type="image/png" href="logo.png">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js" integrity="sha384-YieCqqg9gQufX7+5HcFvCEg/n3KUEdl8/Jb+A6J0npf1mB740VayvwKjTrtCeUoy" crossorigin="anonymous"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.js" crossorigin="anonymous"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/util@0.12.1/dist/umd/index.js" crossorigin="anonymous"></script>
   <style>
     :root {
       --bg: #09090b;
@@ -1292,10 +1290,10 @@
       }
     }
 
-    // ---------- Optimización Automática de Foto (WebP 4:5) y Video (H.264 720p faststart) ----------
+    // ---------- Subida y Optimización de Foto (4:5) y Video a Supabase Storage ----------
     let selectedFotoBlob = null;
+    let selectedFotoType = 'image/webp';
     let selectedVideoFile = null;
-    let ffmpegInstance = null;
 
     function slugifyFolder(text, count) {
       const slug = String(text || '')
@@ -1341,37 +1339,49 @@
     }
 
     async function compressImageToWebP(file) {
-      return new Promise((resolve, reject) => {
+      return new Promise((resolve) => {
         const url = URL.createObjectURL(file);
         const img = new Image();
         img.onload = () => {
           URL.revokeObjectURL(url);
-          // Proporción 4:5 centrada (máx 900x1125 px, igual que el resto del catálogo)
-          const targetRatio = 4 / 5;
-          const srcRatio = img.width / img.height;
-          let sx = 0, sy = 0, sw = img.width, sh = img.height;
-          if (srcRatio > targetRatio) {
-            sw = img.height * targetRatio;
-            sx = (img.width - sw) / 2;
-          } else {
-            sh = img.width / targetRatio;
-            sy = (img.height - sh) / 2;
+          try {
+            const targetRatio = 4 / 5;
+            const srcRatio = img.width / img.height;
+            let sx = 0, sy = 0, sw = img.width, sh = img.height;
+            if (srcRatio > targetRatio) {
+              sw = img.height * targetRatio;
+              sx = (img.width - sw) / 2;
+            } else {
+              sh = img.width / targetRatio;
+              sy = (img.height - sh) / 2;
+            }
+            const outW = Math.min(900, Math.round(sw));
+            const outH = Math.round(outW / targetRatio);
+            const canvas = document.createElement('canvas');
+            canvas.width = outW;
+            canvas.height = outH;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, sx, sy, sw, sh, 0, 0, outW, outH);
+
+            canvas.toBlob((blob) => {
+              if (blob && blob.size > 0) {
+                selectedFotoType = 'image/webp';
+                resolve(blob);
+              } else {
+                // Fallback para navegadores antiguos que no codifican webp en canvas
+                canvas.toBlob((jpgBlob) => {
+                  selectedFotoType = 'image/jpeg';
+                  resolve(jpgBlob || file);
+                }, 'image/jpeg', 0.85);
+              }
+            }, 'image/webp', 0.82);
+          } catch {
+            resolve(file);
           }
-          const outW = Math.min(900, Math.round(sw));
-          const outH = Math.round(outW / targetRatio);
-          const canvas = document.createElement('canvas');
-          canvas.width = outW;
-          canvas.height = outH;
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(img, sx, sy, sw, sh, 0, 0, outW, outH);
-          canvas.toBlob((blob) => {
-            if (blob) resolve(blob);
-            else reject(new Error('No se pudo convertir la imagen a WebP'));
-          }, 'image/webp', 0.82);
         };
         img.onerror = () => {
           URL.revokeObjectURL(url);
-          reject(new Error('No se pudo leer la imagen seleccionada'));
+          resolve(file);
         };
         img.src = url;
       });
@@ -1382,18 +1392,18 @@
       const file = input.files && input.files[0];
       if (!file) {
         selectedFotoBlob = null;
-        status.textContent = 'Se comprime automáticamente a WebP ultraligero';
+        status.textContent = 'Se optimiza automáticamente a formato 4:5';
         return;
       }
-      status.textContent = 'Optimizando foto a WebP 4:5...';
+      status.textContent = 'Optimizando foto a proporción 4:5...';
       try {
         selectedFotoBlob = await compressImageToWebP(file);
         const origKB = Math.round(file.size / 1024);
         const newKB = Math.round(selectedFotoBlob.size / 1024);
-        status.textContent = `✓ Lista: ${origKB} KB → ${newKB} KB (WebP 4:5)`;
+        status.textContent = `✓ Lista: ${origKB} KB → ${newKB} KB (${selectedFotoType === 'image/webp' ? 'WebP 4:5' : 'JPG 4:5'})`;
       } catch (err) {
-        selectedFotoBlob = null;
-        status.textContent = '⚠️ Error al procesar foto: ' + err.message;
+        selectedFotoBlob = file;
+        status.textContent = '✓ Foto seleccionada: ' + file.name;
       }
     }
 
@@ -1402,65 +1412,17 @@
       const file = input.files && input.files[0];
       if (!file) {
         selectedVideoFile = null;
-        status.textContent = 'Se convierte igual al Kabocha Latte (H.264 sin audio)';
+        status.textContent = 'Se sube directo a Supabase Storage';
         return;
       }
       selectedVideoFile = file;
       const mb = (file.size / (1024 * 1024)).toFixed(1);
-      status.textContent = `✓ Video seleccionado (${mb} MB) — se optimizará al guardar`;
-    }
-
-    async function getFFmpeg(onProgress) {
-      if (ffmpegInstance && ffmpegInstance.loaded) return ffmpegInstance;
-      if (!window.FFmpegWASM || !window.FFmpegUtil) {
-        throw new Error('Librería FFmpeg no disponible en el navegador');
-      }
-      const { FFmpeg } = window.FFmpegWASM;
-      const { toBlobURL } = window.FFmpegUtil;
-      const ffmpeg = new FFmpeg();
-      ffmpeg.on('progress', ({ progress }) => {
-        if (typeof onProgress === 'function' && Number.isFinite(progress)) {
-          onProgress(Math.max(5, Math.min(95, progress * 100)));
-        }
-      });
-      const baseCore = 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/umd';
-      const baseFF = 'https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/umd';
-      await ffmpeg.load({
-        classWorkerURL: await toBlobURL(`${baseFF}/814.ffmpeg.js`, 'text/javascript'),
-        coreURL: await toBlobURL(`${baseCore}/ffmpeg-core.js`, 'text/javascript'),
-        wasmURL: await toBlobURL(`${baseCore}/ffmpeg-core.wasm`, 'application/wasm')
-      });
-      ffmpegInstance = ffmpeg;
-      return ffmpeg;
-    }
-
-    async function optimizeVideoToKabochaFormat(file, onProgress) {
-      const { fetchFile } = window.FFmpegUtil;
-      const ffmpeg = await getFFmpeg(onProgress);
-      const ext = (file.name.split('.').pop() || 'mp4').toLowerCase().replace(/[^a-z0-9]/g, '');
-      const inName = `input.${ext}`;
-      const outName = 'animacion.mp4';
-      await ffmpeg.writeFile(inName, await fetchFile(file));
-      await ffmpeg.exec([
-        '-i', inName,
-        '-vf', 'scale=720:-2',
-        '-c:v', 'libx264',
-        '-profile:v', 'main',
-        '-pix_fmt', 'yuv420p',
-        '-crf', '23',
-        '-preset', 'ultrafast',
-        '-an',
-        '-movflags', '+faststart',
-        outName
-      ]);
-      const data = await ffmpeg.readFile(outName);
-      await ffmpeg.deleteFile(inName).catch(() => {});
-      await ffmpeg.deleteFile(outName).catch(() => {});
-      return new Blob([data.buffer], { type: 'video/mp4' });
+      status.textContent = `✓ Video seleccionado: ${file.name} (${mb} MB)`;
     }
 
     function resetMediaInputs() {
       selectedFotoBlob = null;
+      selectedFotoType = 'image/webp';
       selectedVideoFile = null;
       const fInput = document.getElementById('prodFotoFile');
       const vInput = document.getElementById('prodVideoFile');
@@ -1468,8 +1430,8 @@
       if (vInput) vInput.value = '';
       const fStatus = document.getElementById('fotoStatusText');
       const vStatus = document.getElementById('videoStatusText');
-      if (fStatus) fStatus.textContent = 'Se comprime automáticamente a WebP ultraligero';
-      if (vStatus) vStatus.textContent = 'Se convierte igual al Kabocha Latte (H.264 sin audio)';
+      if (fStatus) fStatus.textContent = 'Se optimiza automáticamente a formato 4:5';
+      if (vStatus) vStatus.textContent = 'Se sube directo a Supabase Storage';
       setMediaProgress(false);
     }
 
@@ -1600,7 +1562,7 @@
       else if (temperatura === 'ambos') tags = ['frio', 'caliente'];
 
       try {
-        // Si el superadmin seleccionó foto y/o video, optimizar y subir a Supabase Storage (bucket 'media')
+        // Si el superadmin seleccionó foto y/o video, subir a Supabase Storage (bucket 'media')
         if (canAddOrDelete() && (selectedFotoBlob || selectedVideoFile)) {
           const catId = isRec ? '' : document.getElementById('prodCat').value;
           const catObj = state.categories.find(c => c.id === catId);
@@ -1608,42 +1570,35 @@
           const slug = extractFolderSlug(carpeta, nombre, catId);
           const storagePrefix = isRec ? `productos/recomendados/${slug}` : `productos/${catCarpeta}/${slug}`;
 
-          // Intentar crear bucket 'media' por si aún no existe
-          await supabaseClient.storage.createBucket('media', { public: true }).catch(() => {});
-
           if (selectedFotoBlob) {
-            setMediaProgress(true, 'Subiendo foto WebP optimizada...', 20);
+            setMediaProgress(true, 'Subiendo foto a Supabase Storage...', 30);
             const { error: upImgErr } = await supabaseClient.storage
               .from('media')
               .upload(`${storagePrefix}/foto.webp`, selectedFotoBlob, {
-                contentType: 'image/webp',
+                contentType: selectedFotoType || 'image/webp',
                 cacheControl: '60',
                 upsert: true
               });
-            if (upImgErr) throw new Error('Storage Foto: ' + upImgErr.message);
+            if (upImgErr) {
+              const msg = upImgErr.message || upImgErr.error || JSON.stringify(upImgErr);
+              throw new Error('Error al subir foto: ' + msg);
+            }
           }
 
           let uploadedVideo = false;
           if (selectedVideoFile) {
-            setMediaProgress(true, 'Cargando motor FFmpeg y optimizando video (720p H.264 sin audio)...', 10);
-            const videoBlob = await optimizeVideoToKabochaFormat(selectedVideoFile, (pct) => {
-              setMediaProgress(true, 'Optimizando video al formato Kabocha Latte...', pct);
-            });
-            const vStatus = document.getElementById('videoStatusText');
-            if (vStatus) {
-              const origMB = (selectedVideoFile.size / (1024 * 1024)).toFixed(1);
-              const newKB = Math.round(videoBlob.size / 1024);
-              vStatus.textContent = `✓ Video optimizado: ${origMB} MB → ${newKB} KB`;
-            }
-            setMediaProgress(true, 'Subiendo video optimizado a Supabase...', 96);
+            setMediaProgress(true, 'Subiendo video a Supabase Storage...', 70);
             const { error: upVidErr } = await supabaseClient.storage
               .from('media')
-              .upload(`${storagePrefix}/animacion.mp4`, videoBlob, {
-                contentType: 'video/mp4',
+              .upload(`${storagePrefix}/animacion.mp4`, selectedVideoFile, {
+                contentType: selectedVideoFile.type || 'video/mp4',
                 cacheControl: '60',
                 upsert: true
               });
-            if (upVidErr) throw new Error('Storage Video: ' + upVidErr.message);
+            if (upVidErr) {
+              const msg = upVidErr.message || upVidErr.error || JSON.stringify(upVidErr);
+              throw new Error('Error al subir video: ' + msg);
+            }
             uploadedVideo = true;
           }
 
@@ -1695,8 +1650,9 @@
         closeProductModal();
         await loadData();
       } catch (err) {
-        console.error('Error en saveProduct:', err);
-        showToast('Error al guardar: ' + err.message, false);
+        console.error('Error detallado en saveProduct:', err);
+        const msg = (err && (err.message || err.error_description || err.error || (typeof err === 'string' ? err : JSON.stringify(err)))) || 'Error desconocido';
+        showToast('Error al guardar: ' + msg, false);
       } finally {
         btn.disabled = false;
         setMediaProgress(false);
