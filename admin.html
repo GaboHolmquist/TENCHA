@@ -727,11 +727,63 @@
       searchTerm: ''
     };
 
+    // ---------- Inactividad (Cierre automático tras 10 minutos) ----------
+    const INACTIVITY_LIMIT_MS = 10 * 60 * 1000; // 10 minutos
+    let inactivityTimer = null;
+
+    function resetInactivityTimer() {
+      if (!state.user) return;
+      localStorage.setItem('tencha_admin_last_activity', Date.now().toString());
+      clearTimeout(inactivityTimer);
+      inactivityTimer = setTimeout(() => {
+        handleAutoLogout();
+      }, INACTIVITY_LIMIT_MS);
+    }
+
+    async function handleAutoLogout() {
+      clearTimeout(inactivityTimer);
+      localStorage.removeItem('tencha_admin_last_activity');
+      await supabaseClient.auth.signOut();
+      state.user = null;
+      showLogin();
+      const errEl = document.getElementById('loginError');
+      if (errEl) {
+        errEl.textContent = 'Tu sesión se cerró automáticamente por inactividad (10 minutos). Inicia sesión nuevamente.';
+        errEl.style.display = 'block';
+      }
+      showToast('⚠️ Sesión cerrada por inactividad (10 min)', false);
+    }
+
+    function initInactivityListeners() {
+      ['mousedown', 'mousemove', 'keydown', 'touchstart', 'scroll', 'click'].forEach(evt => {
+        window.addEventListener(evt, () => {
+          if (state.user) resetInactivityTimer();
+        }, { passive: true });
+      });
+
+      document.addEventListener('visibilitychange', () => {
+        if (!document.hidden && state.user) {
+          const last = parseInt(localStorage.getItem('tencha_admin_last_activity') || '0', 10);
+          if (last && Date.now() - last > INACTIVITY_LIMIT_MS) {
+            handleAutoLogout();
+          } else {
+            resetInactivityTimer();
+          }
+        }
+      });
+    }
+
     // ---------- Auth ----------
     async function checkSession() {
       const { data: { session } } = await supabaseClient.auth.getSession();
       if (session) {
+        const last = parseInt(localStorage.getItem('tencha_admin_last_activity') || '0', 10);
+        if (last && Date.now() - last > INACTIVITY_LIMIT_MS) {
+          await handleAutoLogout();
+          return;
+        }
         state.user = session.user;
+        resetInactivityTimer();
         showDashboard();
       } else {
         showLogin();
@@ -753,6 +805,7 @@
         const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
         if (error) throw error;
         state.user = data.user;
+        resetInactivityTimer();
         showDashboard();
       } catch (err) {
         errEl.textContent = 'Error: ' + (err.message || 'Credenciales inválidas');
@@ -764,6 +817,8 @@
     }
 
     async function handleLogout() {
+      clearTimeout(inactivityTimer);
+      localStorage.removeItem('tencha_admin_last_activity');
       await supabaseClient.auth.signOut();
       state.user = null;
       showLogin();
@@ -1264,6 +1319,7 @@
     }
 
     // Run on startup
+    initInactivityListeners();
     checkSession();
   </script>
 </body>
