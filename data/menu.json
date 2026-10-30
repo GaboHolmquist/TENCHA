@@ -86,6 +86,20 @@
           "disponible": true,
           "descripcion": "Matcha ligero, para quienes recién comienzan. (Matcha y Agua)",
           "tiene_video": true
+        },
+        {
+          "carpeta": "https://bkubdcfhgivgmckblsyt.supabase.co/storage/v1/object/public/media/productos/01-matcha-puro/03-test-de-prueba/#video",
+          "nombre": "Test de prueba",
+          "sub": "Matcha y agua",
+          "jp": "濃茶",
+          "precio": 600000,
+          "temperatura": "caliente",
+          "tags": [
+            "caliente"
+          ],
+          "disponible": false,
+          "descripcion": "Canon f1",
+          "tiene_video": true
         }
       ]
     },

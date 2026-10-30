@@ -373,7 +373,7 @@ function renderMenu() {
     wrap.appendChild(sec);
   });
 
-  // Resalta el chip de la categoría visible
+  // Resalta el chip de la categoría visible y lo centra horizontalmente SIN tocar el scroll vertical de la página
   const io = new IntersectionObserver((entries) => {
     entries.forEach((e) => {
       if (!e.isIntersecting) return;
@@ -381,7 +381,10 @@ function renderMenu() {
       document.querySelectorAll('.chip').forEach((ch) => {
         const on = ch.dataset.cat === id;
         ch.classList.toggle('active', on);
-        if (on) ch.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
+        if (on && bar) {
+          const targetLeft = ch.offsetLeft - (bar.clientWidth - ch.clientWidth) / 2;
+          bar.scrollTo({ left: targetLeft, behavior: 'smooth' });
+        }
       });
     });
   }, { rootMargin: '-140px 0px -60% 0px' });
@@ -508,10 +511,11 @@ function openItem(idx, list = state.items, dir = 0) {
   }
 
   if (!dlg.open) {
-    state.savedScrollY = window.scrollY;
-    document.documentElement.classList.add('lock');
+    const y = window.scrollY;
     dlg.showModal();
-    window.scrollTo(0, state.savedScrollY);
+    if (window.scrollY !== y) {
+      window.scrollTo(0, y);
+    }
   }
 }
 
@@ -522,13 +526,29 @@ function navigate(step) {
 
 function initPopup() {
   const dlg = $('productPopup');
-  // Bloquea el scroll de la página detrás del popup y conserva la posición exacta al cerrar
-  dlg.addEventListener('close', () => {
-    const y = state.savedScrollY ?? window.scrollY;
-    document.documentElement.classList.remove('lock');
-    window.scrollTo(0, y);
-    requestAnimationFrame(() => window.scrollTo(0, y));
-  });
+
+  // Bloquea cualquier scroll o arrastre de la página de fondo mientras el popup está abierto
+  let lastTouchY = 0;
+  dlg.addEventListener('touchstart', (e) => {
+    if (e.touches.length === 1) lastTouchY = e.touches[0].clientY;
+  }, { passive: true });
+
+  dlg.addEventListener('touchmove', (e) => {
+    const body = e.target.closest('.popup-body');
+    if (!body) {
+      if (e.cancelable) e.preventDefault();
+      return;
+    }
+    const currentY = e.touches[0].clientY;
+    const dy = currentY - lastTouchY;
+    const atTop = body.scrollTop <= 0 && dy > 0;
+    const atBottom = body.scrollTop + body.clientHeight >= body.scrollHeight - 1 && dy < 0;
+    if (atTop || atBottom) {
+      if (e.cancelable) e.preventDefault();
+    }
+    lastTouchY = currentY;
+  }, { passive: false });
+
   dlg.addEventListener('click', (e) => { if (e.target === dlg) dlg.close(); });
   document.addEventListener('keydown', (e) => {
     if (!dlg.open) return;
@@ -645,12 +665,12 @@ function initPullToRefresh() {
   const ptrArc = $('ptrArc');
   if (!ptrCircle) return;
 
-  let startY = 0, isPulling = false, pullDistance = 0;
+  let startX = 0, startY = -1, isPulling = false, pullDistance = 0;
 
   window.addEventListener('touchstart', (e) => {
     if (dlg.open || e.touches.length !== 1) return;
-    // Solo registrar inicio si está en el tope superior
-    if (window.scrollY <= 1) {
+    if (window.scrollY <= 0) {
+      startX = e.touches[0].clientX;
       startY = e.touches[0].clientY;
       isPulling = false;
       pullDistance = 0;
@@ -661,18 +681,26 @@ function initPullToRefresh() {
 
   window.addEventListener('touchmove', (e) => {
     if (startY < 0 || dlg.open || e.touches.length !== 1) return;
+    const x = e.touches[0].clientX;
     const y = e.touches[0].clientY;
     const dy = y - startY;
+    const dx = Math.abs(x - startX);
 
-    // Solo interceptar si el usuario está arriba del todo y arrastra hacia abajo
-    if (window.scrollY <= 0 && dy > 4) {
+    // Si el usuario desliza hacia arriba (intenta navegar hacia abajo en la carta), cancelar PTR de inmediato
+    if (dy < -6) {
+      startY = -1;
+      return;
+    }
+
+    // Solo interceptar si está en el tope superior y arrastra hacia abajo con intención clara (> 24px)
+    if (window.scrollY <= 0 && dy > 24 && dy > dx * 1.5) {
       const inHScroll = e.target.closest('#carousel, #catBar');
-      if (inHScroll) return;
+      if (inHScroll) { startY = -1; return; }
 
       isPulling = true;
-      e.preventDefault(); // Solo previene cuando realmente activa el pull-to-refresh
+      if (e.cancelable) e.preventDefault();
 
-      pullDistance = Math.min(85, (dy - 4) * 0.42);
+      pullDistance = Math.min(85, (dy - 24) * 0.45);
       const progress = Math.min(1, pullDistance / 50);
       ptrCircle.style.transform = `translateY(${pullDistance - 36}px) scale(${0.7 + progress * 0.3})`;
       ptrCircle.style.opacity = String(progress);

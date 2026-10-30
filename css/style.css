@@ -13,13 +13,11 @@
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html {
-  overscroll-behavior-y: none;
-  overflow-x: hidden;
+  overflow-x: clip;
   -webkit-text-size-adjust: 100%;
 }
 body {
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
+  overflow-x: clip;
   font-family: 'Outfit', system-ui, sans-serif;
   background: var(--bg);
   color: var(--text);
@@ -334,8 +332,7 @@ body, .slide, .cat-card, .item-card, .popup-card {
 .popup-nav { flex: 0 0 auto; padding: 6px 16px 16px; }
 .popup[open] { display: flex; }
 
-/* Ajustes v3: texto más pegado, flechas sin círculo, bloqueo de scroll */
-html.lock { overflow: hidden; overscroll-behavior: none; }
+/* Ajustes v3: texto más pegado, flechas sin círculo */
 .popup-head .name-jp { margin-top: 1px; }
 .popup-tags { margin: 0 0 6px; min-height: 0; }
 .popup-tags:empty { display: none; }
