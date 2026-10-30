@@ -496,6 +496,14 @@
       font-weight: 600;
     }
 
+    /* Bloqueo de fondo cuando el modal está abierto */
+    html.lock, body.lock {
+      overflow: hidden !important;
+      overscroll-behavior: none !important;
+      height: 100% !important;
+      touch-action: none !important;
+    }
+
     /* Modal / Drawer */
     .modal-backdrop {
       position: fixed;
@@ -510,6 +518,7 @@
       opacity: 0;
       pointer-events: none;
       transition: opacity 0.2s;
+      overscroll-behavior: contain;
     }
     .modal-backdrop.open {
       opacity: 1;
@@ -524,6 +533,9 @@
       padding: 24px;
       max-height: 90vh;
       overflow-y: auto;
+      overscroll-behavior: contain;
+      -webkit-overflow-scrolling: touch;
+      touch-action: pan-y;
       box-shadow: 0 25px 50px rgba(0, 0, 0, 0.7);
     }
     .modal-head {
@@ -699,16 +711,16 @@
         <h2 class="modal-title" id="modalTitle">Producto</h2>
         <button class="modal-close" onclick="closeProductModal()">✕</button>
       </div>
-      <form id="productForm" onsubmit="saveProduct(event)">
+      <form id="productForm" novalidate onsubmit="saveProduct(event)">
         <input type="hidden" id="editId">
         <input type="hidden" id="editIsRec">
         <div class="form-group" id="catSelectGroup">
           <label class="form-label">Categoría</label>
-          <select id="prodCat" class="form-select" required></select>
+          <select id="prodCat" class="form-select"></select>
         </div>
         <div class="form-group">
           <label class="form-label">Nombre del Producto</label>
-          <input type="text" id="prodNombre" class="form-input" placeholder="Ej: Koicha" required oninput="autoFillCarpeta(this.value)">
+          <input type="text" id="prodNombre" class="form-input" placeholder="Ej: Koicha" oninput="autoFillCarpeta(this.value)">
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
           <div class="form-group">
@@ -723,7 +735,7 @@
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
           <div class="form-group">
             <label class="form-label">Precio (CLP)</label>
-            <input type="number" id="prodPrecio" class="form-input" placeholder="4500" required>
+            <input type="number" id="prodPrecio" class="form-input" placeholder="4500">
           </div>
           <div class="form-group">
             <label class="form-label">Temperatura</label>
@@ -737,7 +749,7 @@
         </div>
         <div class="form-group" id="folderGroup">
           <label class="form-label">Identificador / Carpeta del Producto</label>
-          <input type="text" id="prodCarpeta" class="form-input" placeholder="01-nombre-carpeta" required>
+          <input type="text" id="prodCarpeta" class="form-input" placeholder="01-nombre-carpeta">
         </div>
         <div class="media-upload-box" id="mediaUploadGroup" style="display:none;">
           <label class="form-label" style="color:var(--matcha);margin-bottom:8px;">📸 Foto y Video (Optimización Automática)</label>
@@ -778,7 +790,7 @@
           <button type="button" class="btn btn-danger btn-sm" id="btnDeleteProd" onclick="deleteCurrentProduct()" style="display:none;">Eliminar</button>
           <div style="display:flex;gap:8px;margin-left:auto;">
             <button type="button" class="btn" onclick="closeProductModal()">Cancelar</button>
-            <button type="submit" class="btn btn-primary" id="btnSaveProd">Guardar</button>
+            <button type="button" class="btn btn-primary" id="btnSaveProd" onclick="saveProduct(event)">Guardar</button>
           </div>
         </div>
       </form>
@@ -1490,17 +1502,22 @@
       document.getElementById('prodDesc').value = '';
       document.getElementById('prodDisp').checked = true;
 
+      // Bloquear scroll de fondo
+      state.savedScrollY = window.scrollY;
+      document.documentElement.classList.add('lock');
+      document.body.classList.add('lock');
       document.getElementById('productModal').classList.add('open');
     }
 
     function openEditModal(id, isRec) {
       const list = isRec ? state.recomendados : state.products;
-      const item = list.find(x => x.id === id);
+      const numId = parseInt(id, 10);
+      const item = list.find(x => x.id === numId);
       if (!item) return;
 
       resetMediaInputs();
       document.getElementById('modalTitle').textContent = 'Editar ' + item.nombre;
-      document.getElementById('editId').value = id;
+      document.getElementById('editId').value = numId;
       document.getElementById('editIsRec').value = isRec ? 'true' : 'false';
 
       const catSelectGroup = document.getElementById('catSelectGroup');
@@ -1524,15 +1541,28 @@
       document.getElementById('prodDisp').checked = !!item.disponible;
 
       document.getElementById('btnDeleteProd').style.display = (isRec || !canAddOrDelete()) ? 'none' : 'block';
+
+      // Bloquear scroll de fondo
+      state.savedScrollY = window.scrollY;
+      document.documentElement.classList.add('lock');
+      document.body.classList.add('lock');
       document.getElementById('productModal').classList.add('open');
     }
 
     function closeProductModal() {
       document.getElementById('productModal').classList.remove('open');
+      document.documentElement.classList.remove('lock');
+      document.body.classList.remove('lock');
+      if (typeof state.savedScrollY === 'number') {
+        window.scrollTo(0, state.savedScrollY);
+      }
     }
 
     async function saveProduct(e) {
-      e.preventDefault();
+      if (e) {
+        e.preventDefault();
+        if (typeof e.stopPropagation === 'function') e.stopPropagation();
+      }
       const id = document.getElementById('editId').value;
       const isRec = document.getElementById('editIsRec').value === 'true';
       if (!id && !canAddOrDelete()) {
@@ -1543,9 +1573,22 @@
       btn.disabled = true;
 
       const nombre = document.getElementById('prodNombre').value.trim();
+      if (!nombre) {
+        showToast('El nombre del producto no puede estar vacío', false);
+        btn.disabled = false;
+        return;
+      }
+
       const sub = document.getElementById('prodSub').value.trim();
       const jp = document.getElementById('prodJp').value.trim();
-      const precio = parseInt(document.getElementById('prodPrecio').value, 10);
+      const rawPrecio = document.getElementById('prodPrecio').value;
+      const precio = parseInt(rawPrecio, 10);
+      if (isNaN(precio) || precio < 0) {
+        showToast('Ingresa un precio numérico válido', false);
+        btn.disabled = false;
+        return;
+      }
+
       const temperatura = document.getElementById('prodTemp').value;
       let carpeta = document.getElementById('prodCarpeta').value.trim();
       const descripcion = document.getElementById('prodDesc').value.trim();
@@ -1615,17 +1658,31 @@
 
         if (id) {
           // Update
+          const targetId = parseInt(id, 10);
           const table = isRec ? 'recomendados' : 'productos';
-          const prevItem = !isRec ? state.products.find(x => x.id === Number(id)) : null;
+          const prevItem = !isRec ? state.products.find(x => x.id === targetId) : null;
           const recMatch = prevItem ? getRecomendadoMatch(prevItem) : null;
-          if (!isRec) payload.categoria_id = document.getElementById('prodCat').value;
-          const { error } = await supabaseClient.from(table).update(payload).eq('id', id);
+          if (!isRec) {
+            const catVal = document.getElementById('prodCat').value;
+            if (catVal) payload.categoria_id = catVal;
+          }
+          const { error } = await supabaseClient.from(table).update(payload).eq('id', targetId);
           if (error) throw error;
+
           if (recMatch) {
             await supabaseClient.from('recomendados').update({
-              nombre, sub, jp, precio, temperatura, tags, carpeta, descripcion, disponible
+              nombre, sub, jp, precio, temperatura, tags, carpeta: recMatch.carpeta, descripcion, disponible
             }).eq('id', recMatch.id);
           }
+
+          // Actualizar estado local de inmediato
+          const list = isRec ? state.recomendados : state.products;
+          const cur = list.find(x => x.id === targetId);
+          if (cur) {
+            Object.assign(cur, payload);
+            if (recMatch) Object.assign(recMatch, { nombre, sub, jp, precio, temperatura, tags, descripcion, disponible });
+          }
+          renderDashboard();
           showToast('Producto actualizado con éxito');
         } else {
           // Insert
@@ -1638,6 +1695,7 @@
         closeProductModal();
         await loadData();
       } catch (err) {
+        console.error('Error en saveProduct:', err);
         showToast('Error al guardar: ' + err.message, false);
       } finally {
         btn.disabled = false;
@@ -1685,6 +1743,17 @@
       clearTimeout(toastTimeout);
       toastTimeout = setTimeout(() => toast.classList.remove('show'), 3000);
     }
+
+    // Cerrar modal al hacer clic en el backdrop oscuro o presionar Escape
+    const pModal = document.getElementById('productModal');
+    if (pModal) {
+      pModal.addEventListener('click', (e) => {
+        if (e.target === pModal) closeProductModal();
+      });
+    }
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeProductModal();
+    });
 
     // Run on startup
     initInactivityListeners();
