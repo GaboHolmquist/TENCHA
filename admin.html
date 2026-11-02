@@ -375,6 +375,68 @@
       gap: 6px;
     }
     .switch-label.on { color: var(--success); }
+    .switch-label.warn { color: #f59e0b; }
+    .switch-warn input:checked + .slider {
+      background: #f59e0b;
+      border-color: #f59e0b;
+    }
+    .prod-card.agotado .prod-thumb {
+      filter: grayscale(100%);
+      opacity: 0.7;
+    }
+    .badge-agotado {
+      display: inline-block;
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: #fbbf24;
+      background: rgba(245, 158, 11, 0.15);
+      border: 1px solid rgba(245, 158, 11, 0.4);
+      padding: 1px 6px;
+      border-radius: 99px;
+      margin-left: 6px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      vertical-align: middle;
+    }
+    .checkbox-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 14px;
+      border-radius: 99px;
+      border: 1px solid var(--card-border);
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--muted);
+      font-size: 0.82rem;
+      font-weight: 500;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.2s ease;
+    }
+    .checkbox-pill input {
+      accent-color: var(--matcha);
+      cursor: pointer;
+      width: 16px;
+      height: 16px;
+      margin: 0;
+    }
+    .checkbox-pill.active {
+      border-color: rgba(169, 196, 124, 0.5);
+      background: rgba(169, 196, 124, 0.12);
+      color: var(--matcha);
+    }
+    .badge-diet {
+      display: inline-block;
+      font-size: 0.68rem;
+      color: var(--muted);
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 1px 7px;
+      border-radius: 99px;
+      margin-top: 4px;
+      margin-right: 4px;
+      vertical-align: middle;
+    }
     .switch {
       position: relative;
       display: inline-block;
@@ -777,10 +839,30 @@
           <label class="form-label">Descripción</label>
           <textarea id="prodDesc" class="form-textarea" placeholder="Descripción e ingredientes del producto..."></textarea>
         </div>
-        <div class="switch-wrap" style="margin-bottom:20px;">
+        <div class="form-group" style="margin-bottom:14px;">
+          <label class="form-label">Preferencias Dietarias (para futuros filtros)</label>
+          <div style="display:flex;gap:10px;margin-top:6px;flex-wrap:wrap;">
+            <label class="checkbox-pill" id="lblVegano">
+              <input type="checkbox" id="prodVegano" onchange="this.parentElement.classList.toggle('active', this.checked)">
+              🌱 Vegano
+            </label>
+            <label class="checkbox-pill" id="lblSinGluten">
+              <input type="checkbox" id="prodSinGluten" onchange="this.parentElement.classList.toggle('active', this.checked)">
+              🌾 Sin gluten
+            </label>
+          </div>
+        </div>
+        <div class="switch-wrap" style="margin-bottom:8px;">
           <span class="switch-label">Disponible en carta</span>
           <label class="switch">
             <input type="checkbox" id="prodDisp" checked>
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="switch-wrap" style="margin-bottom:20px;">
+          <span class="switch-label" id="lblModalAgotado">Producto agotado</span>
+          <label class="switch switch-warn">
+            <input type="checkbox" id="prodAgotado">
             <span class="slider"></span>
           </label>
         </div>
@@ -1080,58 +1162,102 @@
 
       const numId = Number(item.id) || 0;
       const tempIcon = item.temperatura === 'caliente' ? '🔥 Caliente' : item.temperatura === 'frio' ? '❄️ Frío' : item.temperatura === 'ambos' ? '❄️🔥 Ambos' : '';
+      const isAgotado = Boolean(item.agotado || (Array.isArray(item.tags) && item.tags.includes('agotado')));
+      const isVegano = Boolean(item.vegano || (Array.isArray(item.tags) && item.tags.includes('vegano')));
+      const isSinGluten = Boolean(item.sin_gluten || (Array.isArray(item.tags) && (item.tags.includes('sin_gluten') || item.tags.includes('sin-gluten'))));
 
-      // Botón de recomendados
-      let recButtonHtml = '';
+      // Si es la sección de Recomendados: tarjeta de solo lectura con únicamente el botón "Quitar de recomendados"
       if (isRec) {
+        return `
+          <div class="prod-card ${item.disponible ? '' : 'disabled'} ${isAgotado ? 'agotado' : ''}" id="card-rec-${numId}">
+            <div class="prod-card-top">
+              <img class="prod-thumb" src="${esc(imgSrc)}" onerror="this.onerror=null;this.src='logo.png';" alt="${esc(item.nombre)}">
+              <div class="prod-info">
+                <div class="prod-name" title="${esc(item.nombre)}">
+                  ${esc(item.nombre)}
+                  ${isAgotado ? '<span class="badge-agotado">Agotado</span>' : ''}
+                </div>
+                <div class="prod-sub">${esc(item.sub || item.jp || 'Sin subtítulo')}</div>
+                <div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px;margin-top:4px;">
+                  ${tempIcon ? `<span class="prod-temp-badge" style="margin-top:0;">${tempIcon}</span>` : ''}
+                  ${isVegano ? '<span class="badge-diet" style="margin-top:0;">🌱 Vegano</span>' : ''}
+                  ${isSinGluten ? '<span class="badge-diet" style="margin-top:0;">🌾 Sin gluten</span>' : ''}
+                </div>
+              </div>
+            </div>
+
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0 4px;border-top:1px solid rgba(255,255,255,0.06);margin-top:10px;">
+              <span style="font-size:0.95rem;font-weight:600;color:var(--matcha);">$${(Number(item.precio) || 0).toLocaleString('es-CL')}</span>
+              <span style="font-size:0.75rem;color:var(--muted);">${item.disponible ? '● Visible en carta' : '○ Pausado'}</span>
+            </div>
+
+            <button class="btn btn-sm btn-danger" style="width:100%;margin-top:10px;justify-content:center;" onclick="removeRecomendado(${numId})">
+              ✕ Quitar de recomendados
+            </button>
+          </div>
+        `;
+      }
+
+      // Botón de recomendados (para productos del catálogo general)
+      let recButtonHtml = '';
+      const inRec = isProductInRecomendados(item);
+      if (inRec) {
         recButtonHtml = `
-          <button class="btn btn-sm btn-danger" style="width:100%;margin-top:8px;justify-content:center;" onclick="removeRecomendado(${numId})">
-            ✕ Quitar de recomendados
+          <button class="btn btn-rec btn-rec-active" style="margin-top:8px;" onclick="removeRecomendadoByProdId(${numId})" title="Haz clic para quitarlo de recomendados y dejarlo solo en su categoría">
+            ★ En Recomendados (Quitar)
           </button>
         `;
       } else {
-        const inRec = isProductInRecomendados(item);
-        if (inRec) {
+        if (state.recomendados.length >= 5) {
           recButtonHtml = `
-            <button class="btn btn-rec btn-rec-active" style="margin-top:8px;" onclick="removeRecomendadoByProdId(${numId})" title="Haz clic para quitarlo de recomendados y dejarlo solo en su categoría">
-              ★ En Recomendados (Quitar)
+            <button class="btn btn-rec btn-rec-assign" style="margin-top:8px;opacity:0.55;" onclick="showLimitAlert()" title="Límite alcanzado (máx 5)">
+              ☆ Asignar a Recomendados
             </button>
           `;
         } else {
-          if (state.recomendados.length >= 5) {
-            recButtonHtml = `
-              <button class="btn btn-rec btn-rec-assign" style="margin-top:8px;opacity:0.55;" onclick="showLimitAlert()" title="Límite alcanzado (máx 5)">
-                ☆ Asignar a Recomendados
-              </button>
-            `;
-          } else {
-            recButtonHtml = `
-              <button class="btn btn-rec btn-rec-assign" style="margin-top:8px;" onclick="assignToRecomendados(${numId})">
-                ☆ Asignar a Recomendados
-              </button>
-            `;
-          }
+          recButtonHtml = `
+            <button class="btn btn-rec btn-rec-assign" style="margin-top:8px;" onclick="assignToRecomendados(${numId})">
+              ☆ Asignar a Recomendados
+            </button>
+          `;
         }
       }
 
       return `
-        <div class="prod-card ${item.disponible ? '' : 'disabled'}" id="card-${isRec ? 'rec' : 'prod'}-${numId}">
+        <div class="prod-card ${item.disponible ? '' : 'disabled'} ${isAgotado ? 'agotado' : ''}" id="card-prod-${numId}">
           <div class="prod-card-top">
             <img class="prod-thumb" src="${esc(imgSrc)}" onerror="this.onerror=null;this.src='logo.png';" alt="${esc(item.nombre)}">
             <div class="prod-info">
-              <div class="prod-name" title="${esc(item.nombre)}">${esc(item.nombre)}</div>
+              <div class="prod-name" title="${esc(item.nombre)}">
+                ${esc(item.nombre)}
+                ${isAgotado ? '<span class="badge-agotado">Agotado</span>' : ''}
+              </div>
               <div class="prod-sub">${esc(item.sub || item.jp || 'Sin subtítulo')}</div>
-              ${tempIcon ? `<span class="prod-temp-badge">${tempIcon}</span>` : ''}
+              <div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px;margin-top:4px;">
+                ${tempIcon ? `<span class="prod-temp-badge" style="margin-top:0;">${tempIcon}</span>` : ''}
+                ${isVegano ? '<span class="badge-diet" style="margin-top:0;">🌱 Vegano</span>' : ''}
+                ${isSinGluten ? '<span class="badge-diet" style="margin-top:0;">🌾 Sin gluten</span>' : ''}
+              </div>
             </div>
-            <button class="btn btn-sm" onclick="openEditModal(${numId}, ${isRec})">✏️</button>
+            <button class="btn btn-sm" onclick="openEditModal(${numId}, false)">✏️</button>
           </div>
 
           <div class="switch-wrap">
-            <span class="switch-label ${item.disponible ? 'on' : ''}" id="lbl-${isRec ? 'rec' : 'prod'}-${numId}">
+            <span class="switch-label ${item.disponible ? 'on' : ''}" id="lbl-prod-${numId}">
               ${item.disponible ? '● Visible en carta' : '○ Pausado / Apagado'}
             </span>
             <label class="switch">
-              <input type="checkbox" ${item.disponible ? 'checked' : ''} onchange="toggleAvailability(${numId}, ${isRec}, this.checked)">
+              <input type="checkbox" ${item.disponible ? 'checked' : ''} onchange="toggleAvailability(${numId}, false, this.checked)">
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="switch-wrap" style="margin-top: 6px;">
+            <span class="switch-label ${isAgotado ? 'warn' : ''}" id="lbl-agotado-prod-${numId}">
+              ${isAgotado ? '⚠️ Producto agotado' : '○ En stock'}
+            </span>
+            <label class="switch switch-warn">
+              <input type="checkbox" ${isAgotado ? 'checked' : ''} onchange="toggleAgotado(${numId}, false, this.checked)">
               <span class="slider"></span>
             </label>
           </div>
@@ -1139,9 +1265,9 @@
           <div class="prod-controls">
             <div class="price-input-wrap">
               <span class="price-prefix">$</span>
-              <input type="number" class="price-input" value="${Number(item.precio) || 0}" onblur="savePrice(${numId}, ${isRec}, this.value)" onkeydown="if(event.key==='Enter')this.blur()">
+              <input type="number" class="price-input" value="${Number(item.precio) || 0}" onblur="savePrice(${numId}, false, this.value)" onkeydown="if(event.key==='Enter')this.blur()">
             </div>
-            <button class="btn btn-sm" onclick="openEditModal(${numId}, ${isRec})">Detalles</button>
+            <button class="btn btn-sm" onclick="openEditModal(${numId}, false)">Detalles</button>
           </div>
 
           ${recButtonHtml}
@@ -1257,6 +1383,65 @@
         showToast(checked ? 'Producto activado' : 'Producto pausado (oculto en carta)');
       } catch (err) {
         showToast('Error al actualizar: ' + err.message, false);
+      }
+    }
+
+    async function toggleAgotado(id, isRec, checked) {
+      const table = isRec ? 'recomendados' : 'productos';
+      const card = document.getElementById(`card-${isRec ? 'rec' : 'prod'}-${id}`);
+      const lbl = document.getElementById(`lbl-agotado-${isRec ? 'rec' : 'prod'}-${id}`);
+
+      if (card) card.classList.toggle('agotado', checked);
+      if (lbl) {
+        lbl.className = 'switch-label ' + (checked ? 'warn' : '');
+        lbl.textContent = checked ? '⚠️ Producto agotado' : '○ En stock';
+      }
+
+      const list = isRec ? state.recomendados : state.products;
+      const item = list.find(x => x.id === id);
+      if (!item) return;
+
+      let currentTags = Array.isArray(item.tags) ? item.tags.slice() : [];
+      if (checked) {
+        if (!currentTags.includes('agotado')) currentTags.push('agotado');
+      } else {
+        currentTags = currentTags.filter(t => t !== 'agotado');
+      }
+
+      try {
+        const { error } = await supabaseClient.from(table).update({ tags: currentTags }).eq('id', id);
+        if (error) throw error;
+
+        item.tags = currentTags;
+        item.agotado = checked;
+
+        // Si se actualizó un producto de catálogo, sincronizar con recomendados si existe
+        if (!isRec) {
+          const recMatch = getRecomendadoMatch(item);
+          if (recMatch) {
+            let recTags = Array.isArray(recMatch.tags) ? recMatch.tags.slice() : [];
+            if (checked) {
+              if (!recTags.includes('agotado')) recTags.push('agotado');
+            } else {
+              recTags = recTags.filter(t => t !== 'agotado');
+            }
+            await supabaseClient.from('recomendados').update({ tags: recTags }).eq('id', recMatch.id);
+            recMatch.tags = recTags;
+            recMatch.agotado = checked;
+            const recCard = document.getElementById(`card-rec-${recMatch.id}`);
+            const recLbl = document.getElementById(`lbl-agotado-rec-${recMatch.id}`);
+            if (recCard) recCard.classList.toggle('agotado', checked);
+            if (recLbl) {
+              recLbl.className = 'switch-label ' + (checked ? 'warn' : '');
+              recLbl.textContent = checked ? '⚠️ Producto agotado' : '○ En stock';
+            }
+          }
+        }
+
+        renderDashboard();
+        showToast(checked ? 'Producto marcado como agotado' : 'Producto disponible en stock');
+      } catch (err) {
+        showToast('Error al actualizar agotado: ' + err.message, false);
       }
     }
 
@@ -1463,6 +1648,11 @@
       document.getElementById('prodCarpeta').value = '';
       document.getElementById('prodDesc').value = '';
       document.getElementById('prodDisp').checked = true;
+      document.getElementById('prodAgotado').checked = false;
+      document.getElementById('prodVegano').checked = false;
+      document.getElementById('prodSinGluten').checked = false;
+      document.getElementById('lblVegano').classList.remove('active');
+      document.getElementById('lblSinGluten').classList.remove('active');
 
       // Bloquear scroll de fondo
       state.savedScrollY = window.scrollY;
@@ -1471,8 +1661,15 @@
       document.getElementById('productModal').classList.add('open');
     }
 
-    function openEditModal(id, isRec) {
-      const list = isRec ? state.recomendados : state.products;
+    function openEditModal(id, isRec = false) {
+      if (isRec) {
+        const recItem = state.recomendados.find(r => r.id === parseInt(id, 10));
+        if (recItem) {
+          const match = getRecomendadoMatch(recItem) || state.products.find(p => (p.nombre || '').toLowerCase().trim() === (recItem.nombre || '').toLowerCase().trim());
+          if (match) return openEditModal(match.id, false);
+        }
+      }
+      const list = state.products;
       const numId = parseInt(id, 10);
       const item = list.find(x => x.id === numId);
       if (!item) return;
@@ -1480,16 +1677,12 @@
       resetMediaInputs();
       document.getElementById('modalTitle').textContent = 'Editar ' + item.nombre;
       document.getElementById('editId').value = numId;
-      document.getElementById('editIsRec').value = isRec ? 'true' : 'false';
+      document.getElementById('editIsRec').value = 'false';
 
       const catSelectGroup = document.getElementById('catSelectGroup');
-      if (isRec) {
-        catSelectGroup.style.display = 'none';
-      } else {
-        catSelectGroup.style.display = 'block';
-        const catSelect = document.getElementById('prodCat');
-        catSelect.innerHTML = state.categories.map(c => `<option value="${esc(c.id)}" ${c.id === item.categoria_id ? 'selected' : ''}>${esc(c.nombre)}</option>`).join('');
-      }
+      catSelectGroup.style.display = 'block';
+      const catSelect = document.getElementById('prodCat');
+      catSelect.innerHTML = state.categories.map(c => `<option value="${esc(c.id)}" ${c.id === item.categoria_id ? 'selected' : ''}>${esc(c.nombre)}</option>`).join('');
 
       document.getElementById('folderGroup').style.display = canAddOrDelete() ? 'block' : 'none';
       document.getElementById('mediaUploadGroup').style.display = canAddOrDelete() ? 'block' : 'none';
@@ -1501,6 +1694,14 @@
       document.getElementById('prodTemp').value = item.temperatura || '';
       document.getElementById('prodDesc').value = item.descripcion || '';
       document.getElementById('prodDisp').checked = !!item.disponible;
+      const isAgotado = Boolean(item.agotado || (Array.isArray(item.tags) && item.tags.includes('agotado')));
+      document.getElementById('prodAgotado').checked = isAgotado;
+      const isVegano = Boolean(item.vegano || (Array.isArray(item.tags) && item.tags.includes('vegano')));
+      const isSinGluten = Boolean(item.sin_gluten || (Array.isArray(item.tags) && (item.tags.includes('sin_gluten') || item.tags.includes('sin-gluten'))));
+      document.getElementById('prodVegano').checked = isVegano;
+      document.getElementById('prodSinGluten').checked = isSinGluten;
+      document.getElementById('lblVegano').classList.toggle('active', isVegano);
+      document.getElementById('lblSinGluten').classList.toggle('active', isSinGluten);
 
       document.getElementById('btnDeleteProd').style.display = (isRec || !canAddOrDelete()) ? 'none' : 'block';
 
@@ -1555,11 +1756,17 @@
       let carpeta = document.getElementById('prodCarpeta').value.trim();
       const descripcion = document.getElementById('prodDesc').value.trim();
       const disponible = document.getElementById('prodDisp').checked;
+      const isAgotado = document.getElementById('prodAgotado').checked;
+      const isVegano = document.getElementById('prodVegano').checked;
+      const isSinGluten = document.getElementById('prodSinGluten').checked;
 
       let tags = [];
       if (temperatura === 'caliente') tags = ['caliente'];
       else if (temperatura === 'frio') tags = ['frio'];
       else if (temperatura === 'ambos') tags = ['frio', 'caliente'];
+      if (isAgotado) tags.push('agotado');
+      if (isVegano) tags.push('vegano');
+      if (isSinGluten) tags.push('sin_gluten');
 
       try {
         // Si el superadmin seleccionó foto y/o video, subir a Supabase Storage (bucket 'media')

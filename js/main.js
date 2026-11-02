@@ -1,6 +1,12 @@
 // Carta digital Tencha Matcheria
 // Fotos y GIFs: productos/<categoria>/<producto>/foto.jpg y animacion.gif (o animacion.mp4)
 
+// Siempre iniciar en la posición superior de Recomendados al recargar
+if ('scrollRestoration' in history) {
+  history.scrollRestoration = 'manual';
+}
+window.scrollTo(0, 0);
+
 const state = { cats: [], items: [], current: -1, list: [] };
 const $ = (id) => document.getElementById(id);
 const fmt = (n) => '$' + Number(n || 0).toLocaleString('es-CL');
@@ -123,14 +129,40 @@ function isItemAvailable(item) {
   return true;
 }
 
+function isItemAgotado(item) {
+  if (!item) return false;
+  if (item.agotado === true) return true;
+  if (Array.isArray(item.tags) && item.tags.includes('agotado')) return true;
+  return false;
+}
+
 function syncItemTags(item) {
+  const isAgotado = isItemAgotado(item);
+  const isVegano = Array.isArray(item.tags) && item.tags.includes('vegano');
+  const isSinGluten = Array.isArray(item.tags) && (item.tags.includes('sin_gluten') || item.tags.includes('sin-gluten'));
+  let baseTags = [];
   if (item.temperatura) {
     const t = String(item.temperatura).toLowerCase().trim();
-    if (t === 'ambos' || t === 'ambas' || (t.includes('frio') && t.includes('caliente'))) item.tags = ['frio', 'caliente'];
-    else if (t === 'frio' || t === 'frío') item.tags = ['frio'];
-    else if (t === 'caliente') item.tags = ['caliente'];
-    else if (t === 'ninguna' || t === 'ninguno' || t === '-') item.tags = [];
+    if (t === 'ambos' || t === 'ambas' || (t.includes('frio') && t.includes('caliente'))) baseTags = ['frio', 'caliente'];
+    else if (t === 'frio' || t === 'frío') baseTags = ['frio'];
+    else if (t === 'caliente') baseTags = ['caliente'];
+    else if (t === 'ninguna' || t === 'ninguno' || t === '-') baseTags = [];
+  } else if (Array.isArray(item.tags)) {
+    baseTags = item.tags.filter((x) => x !== 'agotado' && x !== 'vegano' && x !== 'sin_gluten' && x !== 'sin-gluten');
   }
+  if (isAgotado) {
+    baseTags.push('agotado');
+    item.agotado = true;
+  }
+  if (isVegano) {
+    baseTags.push('vegano');
+    item.vegano = true;
+  }
+  if (isSinGluten) {
+    baseTags.push('sin_gluten');
+    item.sin_gluten = true;
+  }
+  item.tags = baseTags;
 }
 
 // ---------- Carrusel (productos/recomendados o data/menu.json) ----------
@@ -150,7 +182,12 @@ function parseFolderMeta(rawCarpeta = '', catCarpeta = '') {
     const parts = base.replace(/\/+$/, '').split('/');
     const slug = parts[parts.length - 1] || '';
     const fallbackBase = catCarpeta && slug ? `productos/${catCarpeta}/${slug}/` : undefined;
-    return { base, fallbackBase, slug, forceVideo };
+    return {
+      base: fallbackBase || base,
+      fallbackBase: base,
+      slug,
+      forceVideo
+    };
   }
   const clean = raw.replace(/^\/+|\/+$/g, '');
   if (clean.startsWith('productos/')) {
@@ -265,10 +302,11 @@ function renderCarousel(list) {
   // Precarga en memoria los videos de los recomendados para que al abrir el globo aparezcan al instante
   list.forEach((it) => preloadItemMedia(it, true));
   list.forEach((item, idx) => {
+    const isAgotado = isItemAgotado(item);
     const s = document.createElement('div');
-    s.className = 'slide';
+    s.className = 'slide' + (isAgotado ? ' agotado' : '');
     s.appendChild(mediaImg(item.base + 'foto.webp', item, item.nombre, idx === 0));
-    s.insertAdjacentHTML('beforeend', `<div class="overlay-top">${nameBlock(item.nombre)}</div><div class="overlay-price">${fmt(item.precio)}</div>`);
+    s.insertAdjacentHTML('beforeend', `<div class="overlay-top">${nameBlock(item.nombre)}</div><div class="overlay-price">${fmt(item.precio)}</div>${isAgotado ? '<div class="overlay-agotado">Agotado</div>' : ''}`);
     s.onclick = () => openItem(idx, list);
     car.appendChild(s);
     const d = document.createElement('button');
@@ -331,6 +369,9 @@ function renderCategories() {
 }
 
 function goToCategory(id) {
+  if (currentDietFilter) {
+    applyDietFilter(null);
+  }
   const list = $('menuList');
   if (list.hidden) {
     list.hidden = false;
@@ -338,7 +379,124 @@ function goToCategory(id) {
     document.querySelectorAll('.item-card').forEach((c) => c.classList.add('visible'));
   }
   requestAnimationFrame(() => $('sec-' + id).scrollIntoView({ behavior: 'smooth', block: 'start' }));
-  history.replaceState(null, '', '#' + id);
+}
+
+// ---------- Filtros Dietarios (Vegano / Sin Gluten) ----------
+let currentDietFilter = null;
+
+function applyDietFilter(filter) {
+  currentDietFilter = filter;
+  const btnVegano = $('btnFilterVegano');
+  const btnSinGluten = $('btnFilterSinGluten');
+  if (btnVegano) btnVegano.classList.toggle('active', filter === 'vegano');
+  if (btnSinGluten) btnSinGluten.classList.toggle('active', filter === 'sin_gluten');
+
+  const list = $('menuList');
+  if (list && list.hidden) {
+    list.hidden = false;
+  }
+
+  let totalVisible = 0;
+  document.querySelectorAll('.menu-cat').forEach((sec) => {
+    let catVisibleCount = 0;
+    sec.querySelectorAll('.item-card').forEach((card) => {
+      card.classList.add('visible');
+      if (!filter) {
+        card.style.display = '';
+        catVisibleCount++;
+        totalVisible++;
+        return;
+      }
+      const idx = Number(card.dataset.index);
+      const item = state.items[idx];
+      let matches = false;
+      if (item) {
+        if (filter === 'vegano') {
+          matches = Boolean(item.vegano || (Array.isArray(item.tags) && item.tags.includes('vegano')));
+        } else if (filter === 'sin_gluten') {
+          matches = Boolean(item.sin_gluten || (Array.isArray(item.tags) && (item.tags.includes('sin_gluten') || item.tags.includes('sin-gluten'))));
+        }
+      }
+      if (matches) {
+        card.style.display = '';
+        catVisibleCount++;
+        totalVisible++;
+      } else {
+        card.style.display = 'none';
+      }
+    });
+
+    sec.style.display = (filter && catVisibleCount === 0) ? 'none' : '';
+  });
+
+  // Actualizar visibilidad de chips en la barra de categorías
+  const bar = $('catBar');
+  if (bar) {
+    bar.querySelectorAll('.chip:not(.chip-filter-clear)').forEach((ch) => {
+      const catId = ch.dataset.cat;
+      const sec = $('sec-' + catId);
+      if (sec && sec.style.display === 'none') {
+        ch.style.display = 'none';
+      } else {
+        ch.style.display = '';
+      }
+    });
+
+    // Chip para quitar filtro en la barra superior
+    let clearChip = bar.querySelector('.chip-filter-clear');
+    if (filter) {
+      if (!clearChip) {
+        clearChip = document.createElement('button');
+        clearChip.className = 'chip chip-filter-clear';
+        clearChip.onclick = () => toggleDietFilter(null);
+        bar.prepend(clearChip);
+      }
+      clearChip.innerHTML = `✕ Quitar filtro (${filter === 'vegano' ? '🌱 Vegano' : '🌾 Sin gluten'})`;
+      clearChip.style.display = '';
+    } else if (clearChip) {
+      clearChip.remove();
+    }
+  }
+
+  // Mensaje si no hay productos con ese filtro
+  let emptyMsg = document.getElementById('dietFilterEmpty');
+  if (filter && totalVisible === 0) {
+    if (!emptyMsg) {
+      emptyMsg = document.createElement('div');
+      emptyMsg.id = 'dietFilterEmpty';
+      emptyMsg.className = 'diet-empty-state';
+      emptyMsg.innerHTML = `
+        <p>No hay productos disponibles con el filtro seleccionado (${filter === 'vegano' ? '🌱 Vegano' : '🌾 Sin gluten'}).</p>
+        <button type="button" class="btn-clear-filter">Ver toda la carta</button>
+      `;
+      const clrBtn = emptyMsg.querySelector('.btn-clear-filter');
+      if (clrBtn) clrBtn.onclick = () => toggleDietFilter(null);
+      $('menuSections').appendChild(emptyMsg);
+    } else {
+      const p = emptyMsg.querySelector('p');
+      if (p) p.textContent = `No hay productos disponibles con el filtro seleccionado (${filter === 'vegano' ? '🌱 Vegano' : '🌾 Sin gluten'}).`;
+      const clrBtn = emptyMsg.querySelector('.btn-clear-filter');
+      if (clrBtn) clrBtn.onclick = () => toggleDietFilter(null);
+    }
+    emptyMsg.style.display = 'block';
+  } else if (emptyMsg) {
+    emptyMsg.style.display = 'none';
+  }
+}
+
+function toggleDietFilter(filter) {
+  if (currentDietFilter === filter) {
+    applyDietFilter(null);
+    return;
+  }
+  applyDietFilter(filter);
+  requestAnimationFrame(() => {
+    const list = $('menuList');
+    if (!list) return;
+    const firstSec = list.querySelector('.menu-cat:not([style*="display: none"])');
+    const target = firstSec || list;
+    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
 }
 
 // ---------- Lista completa ----------
@@ -361,12 +519,15 @@ function renderMenu() {
     sec.innerHTML = `<h2 class="menu-cat-head">${nameBlock(c.nombre, '', c.jp)}</h2>${c.intro ? `<p class="intro">${esc(c.intro)}</p>` : ''}<div class="item-grid"></div>`;
     const g = sec.querySelector('.item-grid');
     c.items.forEach((item) => {
+      const isAgotado = isItemAgotado(item);
       const card = document.createElement('button');
-      card.className = 'item-card glass';
+      card.type = 'button';
+      card.className = 'item-card glass' + (isAgotado ? ' agotado' : '');
       card.id = 'item-' + c.id + '-' + item.carpeta;
+      card.dataset.index = String(state.items.indexOf(item));
       const icons = (item.tags || []).map((t) => (t === 'frio' ? '❄' : t === 'caliente' ? '🔥' : '')).filter(Boolean).join(' ');
       card.appendChild(mediaImg(item.base + 'foto.jpg', item));
-      card.insertAdjacentHTML('beforeend', `<div class="overlay-top">${nameBlock(item.nombre, item.sub, item.jp)}</div><div class="overlay-price">${fmt(item.precio)}</div>${icons ? `<div class="overlay-icons">${icons}</div>` : ''}`);
+      card.insertAdjacentHTML('beforeend', `<div class="overlay-top">${nameBlock(item.nombre, item.sub, item.jp)}</div><div class="overlay-price">${fmt(item.precio)}</div>${icons ? `<div class="overlay-icons">${icons}</div>` : ''}${isAgotado ? '<div class="overlay-agotado">Agotado</div>' : ''}`);
       card.onclick = () => openItem(state.items.indexOf(item));
       g.appendChild(card);
     });
@@ -450,10 +611,26 @@ function buildSlideMedia(item) {
 }
 
 function fillPopupCard(card, item) {
+  const isAgotado = isItemAgotado(item);
+  card.classList.toggle('agotado', isAgotado);
+  const mediaWrap = card.querySelector('.popup-media-wrap');
+  let agotadoBadge = mediaWrap ? mediaWrap.querySelector('.overlay-agotado') : null;
+  if (isAgotado) {
+    if (!agotadoBadge && mediaWrap) {
+      agotadoBadge = document.createElement('div');
+      agotadoBadge.className = 'overlay-agotado';
+      agotadoBadge.textContent = 'Agotado';
+      mediaWrap.appendChild(agotadoBadge);
+    }
+  } else if (agotadoBadge) {
+    agotadoBadge.remove();
+  }
   const mediaBox = card.querySelector('.popup-media');
   mediaBox.replaceChildren(buildSlideMedia(item));
-  const tagNames = { frio: '❄ Frío', caliente: '🔥 Caliente' };
-  card.querySelector('.popup-tags').innerHTML = (item.tags || []).map((t) => `<span class="tag">${tagNames[t] || esc(t)}</span>`).join('');
+  const tagNames = { frio: '❄ Frío', caliente: '🔥 Caliente', agotado: '⚠️ Agotado' };
+  card.querySelector('.popup-tags').innerHTML = (item.tags || [])
+    .filter((t) => tagNames[t])
+    .map((t) => `<span class="tag tag-${t}">${tagNames[t]}</span>`).join('');
   card.querySelector('.popup-head').innerHTML = nameBlock(item.nombre, item.sub, item.jp);
   const desc = card.querySelector('.popup-desc'), more = card.querySelector('.popup-more'), body = card.querySelector('.popup-body');
   desc.textContent = item.descripcion || '';
@@ -627,6 +804,7 @@ async function init() {
       item.fallbackBase = parsed.fallbackBase;
       item.hasVideo = parsed.forceVideo !== null ? parsed.forceVideo : Boolean(item.tiene_video || hasCatVideo);
       if (item.hasVideo) item.videoUrl = item.base + 'animacion.mp4';
+      item.catId = c.id;
       state.items.push(item);
       preloadItemMedia(item, true);
     });
@@ -640,16 +818,33 @@ async function init() {
   renderCategories();
   renderMenu();
   initPopup();
+
+  // Botones de filtro dietario en portada
+  const btnVegano = $('btnFilterVegano');
+  const btnSinGluten = $('btnFilterSinGluten');
+  if (btnVegano) btnVegano.onclick = () => toggleDietFilter('vegano');
+  if (btnSinGluten) btnSinGluten.onclick = () => toggleDietFilter('sin_gluten');
+
   $('brandLink').onclick = (e) => {
     e.preventDefault();
+    if (currentDietFilter) applyDietFilter(null);
     const dlg = $('productPopup');
     if (dlg.open) dlg.close();
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    history.replaceState(null, '', location.pathname + location.search);
+    if (location.hash) history.replaceState(null, '', location.pathname + location.search);
   };
-  const hash = location.hash.slice(1);
-  if (hash && state.cats.some((c) => c.id === hash)) goToCategory(hash);
+
+  // Limpiar cualquier hash residual en la URL y asegurar inicio arriba en Recomendados
+  if (location.hash) {
+    history.replaceState(null, '', location.pathname + location.search);
+  }
+  window.scrollTo(0, 0);
+
   initPullToRefresh();
+
+  window.addEventListener('beforeunload', () => {
+    window.scrollTo(0, 0);
+  });
 
   // Bloquea clic derecho / pulsación larga y arrastrar imágenes o videos
   document.addEventListener('contextmenu', (e) => {

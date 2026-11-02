@@ -1,40 +1,7 @@
 {
   "recomendados": [
     {
-      "id": 1,
-      "nombre": "Kabocha Latte - limited",
-      "sub": "Edición especial",
-      "jp": "南瓜",
-      "precio": 4800,
-      "temperatura": "ambos",
-      "tags": [
-        "frio",
-        "caliente"
-      ],
-      "disponible": true,
-      "descripcion": "Disponible solo hasta el 01 de noviembre\n\nKabocha squash asada y especiada con leche vaporizada y el toque justo de dulzor.\n\nIngredientes:\n• Puré de zapallo kabocha asado\n• Canela, jengibre y nuez moscada\n• Leche a elección",
-      "carpeta": "productos/recomendados/1",
-      "tiene_video": true,
-      "orden": 1
-    },
-    {
-      "id": 7,
-      "nombre": "Matcha Tónica Naranja",
-      "sub": "",
-      "jp": "抹茶トニック",
-      "precio": 5200,
-      "temperatura": "frio",
-      "tags": [
-        "frio"
-      ],
-      "disponible": true,
-      "descripcion": "Una bebida refrescante. (Matcha, Agua Tónica, Jugo de Naranja)",
-      "carpeta": "productos/02-creaciones-de-matcha/02-matcha-tonica-naranja",
-      "tiene_video": true,
-      "orden": 2
-    },
-    {
-      "id": 8,
+      "id": 14,
       "nombre": "Fruit Matcha",
       "sub": "Leche entera o vegetal",
       "jp": "果物抹茶",
@@ -48,6 +15,23 @@
       "descripcion": "Matcha, puré de fruta, leche vegetal o entera.",
       "carpeta": "productos/02-creaciones-de-matcha/04-fruit-matcha",
       "tiene_video": true,
+      "orden": 2
+    },
+    {
+      "id": 15,
+      "nombre": "Koicha",
+      "sub": "Matcha y agua",
+      "jp": "濃茶",
+      "precio": 4500,
+      "temperatura": "caliente",
+      "tags": [
+        "caliente",
+        "sin_gluten"
+      ],
+      "disponible": true,
+      "descripcion": "Matcha espeso, la forma más pura de tomarlo. (Matcha y Agua)",
+      "carpeta": "productos/01-matcha-puro/01-koicha",
+      "tiene_video": true,
       "orden": 3
     }
   ],
@@ -60,42 +44,47 @@
       "intro": "Solo matcha y agua, batido a mano. Elige tu matcha: Gokou, Kagoshima, Tencha, Samidori.",
       "items": [
         {
-          "carpeta": "01-koicha",
+          "carpeta": "01-koicha#video",
           "nombre": "Koicha",
           "sub": "Matcha y agua",
           "jp": "濃茶",
           "precio": 4500,
           "temperatura": "caliente",
           "tags": [
-            "caliente"
+            "caliente",
+            "sin_gluten"
           ],
           "disponible": true,
           "descripcion": "Matcha espeso, la forma más pura de tomarlo. (Matcha y Agua)",
           "tiene_video": true
         },
         {
-          "carpeta": "02-usucha",
+          "carpeta": "02-usucha#video",
           "nombre": "Usucha",
           "sub": "Matcha y agua",
           "jp": "薄茶",
           "precio": 4200,
           "temperatura": "caliente",
           "tags": [
-            "caliente"
+            "caliente",
+            "sin_gluten"
           ],
           "disponible": true,
           "descripcion": "Matcha ligero, para quienes recién comienzan. (Matcha y Agua)",
           "tiene_video": true
         },
         {
-          "carpeta": "https://bkubdcfhgivgmckblsyt.supabase.co/storage/v1/object/public/media/productos/01-matcha-puro/03-test-de-prueba/#video",
+          "carpeta": "03-test-de-prueba#video",
           "nombre": "Test de prueba",
           "sub": "Matcha y agua",
           "jp": "濃茶",
-          "precio": 600000,
+          "precio": 420000,
           "temperatura": "caliente",
           "tags": [
-            "caliente"
+            "caliente",
+            "agotado",
+            "vegano",
+            "sin_gluten"
           ],
           "disponible": false,
           "descripcion": "Canon f1",
@@ -111,7 +100,7 @@
       "intro": "",
       "items": [
         {
-          "carpeta": "01-yuzu-coco",
+          "carpeta": "01-yuzu-coco#video",
           "nombre": "Yuzu Coco",
           "sub": "",
           "jp": "柚子",
@@ -119,14 +108,15 @@
           "temperatura": "ambos",
           "tags": [
             "frio",
-            "caliente"
+            "caliente",
+            "vegano"
           ],
           "disponible": true,
           "descripcion": "Matcha, Leche de Coco y Yuzu.",
           "tiene_video": true
         },
         {
-          "carpeta": "02-matcha-tonica-naranja",
+          "carpeta": "02-matcha-tonica-naranja#video",
           "nombre": "Matcha Tónica Naranja",
           "sub": "",
           "jp": "抹茶トニック",
@@ -140,7 +130,7 @@
           "tiene_video": true
         },
         {
-          "carpeta": "03-ube-matcha-latte",
+          "carpeta": "03-ube-matcha-latte#video",
           "nombre": "Ube Matcha Latte",
           "sub": "Leche entera o vegetal",
           "jp": "紅芋",
@@ -155,7 +145,7 @@
           "tiene_video": true
         },
         {
-          "carpeta": "04-fruit-matcha",
+          "carpeta": "04-fruit-matcha#video",
           "nombre": "Fruit Matcha",
           "sub": "Leche entera o vegetal",
           "jp": "果物抹茶",
@@ -170,7 +160,7 @@
           "tiene_video": true
         },
         {
-          "carpeta": "05-chai-matcha",
+          "carpeta": "05-chai-matcha#video",
           "nombre": "Chai Matcha",
           "sub": "Leche entera o vegetal",
           "jp": "チャイ抹茶",
@@ -185,7 +175,7 @@
           "tiene_video": true
         },
         {
-          "carpeta": "06-maqui-matcha",
+          "carpeta": "06-maqui-matcha#video",
           "nombre": "Maqui Matcha",
           "sub": "Leche entera o vegetal",
           "jp": "マキ抹茶",
@@ -200,7 +190,7 @@
           "tiene_video": true
         },
         {
-          "carpeta": "07-dirty-matcha",
+          "carpeta": "07-dirty-matcha#video",
           "nombre": "Dirty Matcha",
           "sub": "Leche entera o vegetal",
           "jp": "ダーティー抹茶",
@@ -215,7 +205,7 @@
           "tiene_video": true
         },
         {
-          "carpeta": "08-choco-matcha",
+          "carpeta": "08-choco-matcha#video",
           "nombre": "Choco Matcha",
           "sub": "Leche entera o vegetal",
           "jp": "チョコ抹茶",
@@ -230,7 +220,7 @@
           "tiene_video": true
         },
         {
-          "carpeta": "09-tradicional-matcha-latte",
+          "carpeta": "09-tradicional-matcha-latte#video",
           "nombre": "Tradicional Matcha Latte",
           "sub": "Leche entera o vegetal",
           "jp": "抹茶ラテ",
@@ -254,7 +244,7 @@
       "intro": "Nuestro amigo FACTO COFFEE se suma a esta experiencia con una propuesta de tueste de precisión, para que siempre disfrutes de un sabor único en cada taza de café.",
       "items": [
         {
-          "carpeta": "01-espresso",
+          "carpeta": "01-espresso#video",
           "nombre": "Espresso",
           "sub": "",
           "jp": "エスプレッソ",
@@ -263,10 +253,10 @@
           "tags": [],
           "disponible": true,
           "descripcion": "",
-          "tiene_video": false
+          "tiene_video": true
         },
         {
-          "carpeta": "02-cafe-con-leche-grande",
+          "carpeta": "02-cafe-con-leche-grande#novideo",
           "nombre": "Café con Leche Grande",
           "sub": "",
           "jp": "カフェラテ",
@@ -281,7 +271,7 @@
           "tiene_video": false
         },
         {
-          "carpeta": "03-cafe-con-leche-mediano",
+          "carpeta": "03-cafe-con-leche-mediano#novideo",
           "nombre": "Café con Leche Mediano",
           "sub": "",
           "jp": "カフェラテ",
@@ -296,7 +286,7 @@
           "tiene_video": false
         },
         {
-          "carpeta": "04-filtrado",
+          "carpeta": "04-filtrado#novideo",
           "nombre": "Filtrado",
           "sub": "",
           "jp": "ドリップ",
@@ -311,7 +301,7 @@
           "tiene_video": false
         },
         {
-          "carpeta": "05-moka",
+          "carpeta": "05-moka#novideo",
           "nombre": "Moka",
           "sub": "",
           "jp": "モカ",
@@ -326,7 +316,7 @@
           "tiene_video": false
         },
         {
-          "carpeta": "06-cold-brew",
+          "carpeta": "06-cold-brew#novideo",
           "nombre": "Cold Brew",
           "sub": "",
           "jp": "水出し珈琲",
@@ -340,7 +330,7 @@
           "tiene_video": false
         },
         {
-          "carpeta": "07-iced-espresso",
+          "carpeta": "07-iced-espresso#novideo",
           "nombre": "Iced Espresso",
           "sub": "",
           "jp": "アイスエスプレッソ",
@@ -363,7 +353,7 @@
       "intro": "",
       "items": [
         {
-          "carpeta": "01-chokoreto",
+          "carpeta": "01-chokoreto#novideo",
           "nombre": "Chokorēto",
           "sub": "",
           "jp": "チョコレート",
@@ -375,7 +365,7 @@
           "tiene_video": false
         },
         {
-          "carpeta": "02-hojicha-latte",
+          "carpeta": "02-hojicha-latte#novideo",
           "nombre": "Hojicha Latte",
           "sub": "",
           "jp": "ほうじ茶",
@@ -390,7 +380,7 @@
           "tiene_video": false
         },
         {
-          "carpeta": "03-masala-chai-latte",
+          "carpeta": "03-masala-chai-latte#novideo",
           "nombre": "Masala Chai Latte",
           "sub": "",
           "jp": "マサラチャイ",
@@ -405,7 +395,7 @@
           "tiene_video": false
         },
         {
-          "carpeta": "04-sencha",
+          "carpeta": "04-sencha#novideo",
           "nombre": "Sencha",
           "sub": "",
           "jp": "煎茶",
@@ -419,7 +409,7 @@
           "tiene_video": false
         },
         {
-          "carpeta": "05-rooibos",
+          "carpeta": "05-rooibos#novideo",
           "nombre": "Rooibos",
           "sub": "",
           "jp": "ルイボス",
@@ -434,7 +424,7 @@
           "tiene_video": false
         },
         {
-          "carpeta": "06-jugos-naturales",
+          "carpeta": "06-jugos-naturales#novideo",
           "nombre": "Jugos Naturales",
           "sub": "",
           "jp": "ジュース",
@@ -446,7 +436,7 @@
           "tiene_video": false
         },
         {
-          "carpeta": "07-kohi",
+          "carpeta": "07-kohi#novideo",
           "nombre": "Kohi",
           "sub": "",
           "jp": "コーヒー",
@@ -458,7 +448,7 @@
           "tiene_video": false
         },
         {
-          "carpeta": "08-ginger",
+          "carpeta": "08-ginger#novideo",
           "nombre": "Ginger",
           "sub": "Chai u Original",
           "jp": "ジンジャー",
@@ -479,7 +469,7 @@
       "intro": "",
       "items": [
         {
-          "carpeta": "01-pulled-beef",
+          "carpeta": "01-pulled-beef#novideo",
           "nombre": "Pulled Beef",
           "sub": "",
           "jp": "牛肉サンド",
@@ -491,7 +481,7 @@
           "tiene_video": false
         },
         {
-          "carpeta": "02-pulled-pork",
+          "carpeta": "02-pulled-pork#novideo",
           "nombre": "Pulled Pork",
           "sub": "",
           "jp": "豚肉サンド",
@@ -503,7 +493,7 @@
           "tiene_video": false
         },
         {
-          "carpeta": "03-tamago",
+          "carpeta": "03-tamago#novideo",
           "nombre": "Tamago",
           "sub": "",
           "jp": "卵サンド",
@@ -515,7 +505,7 @@
           "tiene_video": false
         },
         {
-          "carpeta": "04-pan-de-queso",
+          "carpeta": "04-pan-de-queso#novideo",
           "nombre": "Pan de Queso",
           "sub": "",
           "jp": "チーズパン",
@@ -536,7 +526,7 @@
       "intro": "",
       "items": [
         {
-          "carpeta": "01-bombones-de-chocolate",
+          "carpeta": "01-bombones-de-chocolate#novideo",
           "nombre": "Bombones de Chocolate",
           "sub": "",
           "jp": "ボンボン",
@@ -548,7 +538,7 @@
           "tiene_video": false
         },
         {
-          "carpeta": "02-cheesecake",
+          "carpeta": "02-cheesecake#novideo",
           "nombre": "Cheesecake",
           "sub": "",
           "jp": "チーズケーキ",
@@ -560,7 +550,7 @@
           "tiene_video": false
         },
         {
-          "carpeta": "03-blondie",
+          "carpeta": "03-blondie#novideo",
           "nombre": "Blondie",
           "sub": "",
           "jp": "ブロンディ",
@@ -572,7 +562,7 @@
           "tiene_video": false
         },
         {
-          "carpeta": "04-cookie",
+          "carpeta": "04-cookie#novideo",
           "nombre": "Cookie",
           "sub": "",
           "jp": "クッキー",
@@ -590,7 +580,7 @@
           ]
         },
         {
-          "carpeta": "05-mochis",
+          "carpeta": "05-mochis#novideo",
           "nombre": "Mochis",
           "sub": "",
           "jp": "餅",
@@ -608,7 +598,7 @@
           ]
         },
         {
-          "carpeta": "06-muffin",
+          "carpeta": "06-muffin#novideo",
           "nombre": "Muffin",
           "sub": "",
           "jp": "マフィン",
@@ -620,7 +610,7 @@
           "tiene_video": false
         },
         {
-          "carpeta": "07-canele",
+          "carpeta": "07-canele#novideo",
           "nombre": "Canelé",
           "sub": "",
           "jp": "カヌレ",
@@ -632,7 +622,7 @@
           "tiene_video": false
         },
         {
-          "carpeta": "08-conchocolates",
+          "carpeta": "08-conchocolates#novideo",
           "nombre": "Conchocolate",
           "sub": "",
           "jp": "チョコレート",

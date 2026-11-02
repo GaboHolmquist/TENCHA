@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
   <link rel="icon" type="image/png" href="logo.png">
-  <link rel="stylesheet" href="css/style.css?v=8">
+  <link rel="stylesheet" href="css/style.css?v=17">
 </head>
 <body>
   <header class="topbar">
@@ -46,6 +46,19 @@
       <h1 class="title">Nuestra Carta<span class="title-jp jp">お品書き</span></h1>
       <p class="subtitle">Elige una categoría</p>
       <div class="cat-grid" id="catGrid"></div>
+
+      <!-- Filtros dietarios -->
+      <div class="diet-filter-box" id="dietFilterBox">
+        <span class="diet-filter-title">Filtrar por</span>
+        <div class="diet-filter-btns">
+          <button type="button" class="diet-btn" id="btnFilterVegano">
+            <span class="diet-btn-icon">🌱</span> Vegano
+          </button>
+          <button type="button" class="diet-btn" id="btnFilterSinGluten">
+            <span class="diet-btn-icon">🌾</span> Sin gluten
+          </button>
+        </div>
+      </div>
     </section>
 
     <!-- Lista completa (se despliega al elegir categoría) -->
@@ -91,6 +104,6 @@
     </div>
   </dialog>
 
-  <script src="js/main.js?v=9"></script>
+  <script src="js/main.js?v=17"></script>
 </body>
 </html>
