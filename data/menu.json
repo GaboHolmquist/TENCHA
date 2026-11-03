@@ -1,6 +1,22 @@
 {
   "recomendados": [
     {
+      "id": 16,
+      "nombre": "Matcha Tónica Naranja",
+      "sub": "",
+      "jp": "抹茶トニック",
+      "precio": 5200,
+      "temperatura": "frio",
+      "tags": [
+        "frio"
+      ],
+      "disponible": true,
+      "descripcion": "Una bebida refrescante. (Matcha, Agua Tónica, Jugo de Naranja)",
+      "carpeta": "productos/02-creaciones-de-matcha/02-matcha-tonica-naranja",
+      "tiene_video": true,
+      "orden": 2
+    },
+    {
       "id": 14,
       "nombre": "Fruit Matcha",
       "sub": "Leche entera o vegetal",
@@ -16,23 +32,6 @@
       "carpeta": "productos/02-creaciones-de-matcha/04-fruit-matcha",
       "tiene_video": true,
       "orden": 2
-    },
-    {
-      "id": 15,
-      "nombre": "Koicha",
-      "sub": "Matcha y agua",
-      "jp": "濃茶",
-      "precio": 4500,
-      "temperatura": "caliente",
-      "tags": [
-        "caliente",
-        "sin_gluten"
-      ],
-      "disponible": true,
-      "descripcion": "Matcha espeso, la forma más pura de tomarlo. (Matcha y Agua)",
-      "carpeta": "productos/01-matcha-puro/01-koicha",
-      "tiene_video": true,
-      "orden": 3
     }
   ],
   "categorias": [
@@ -109,7 +108,8 @@
           "tags": [
             "frio",
             "caliente",
-            "vegano"
+            "vegano",
+            "agotado"
           ],
           "disponible": true,
           "descripcion": "Matcha, Leche de Coco y Yuzu.",
@@ -256,7 +256,7 @@
           "tiene_video": true
         },
         {
-          "carpeta": "02-cafe-con-leche-grande#novideo",
+          "carpeta": "02-cafe-con-leche-grande#video",
           "nombre": "Café con Leche Grande",
           "sub": "",
           "jp": "カフェラテ",
@@ -268,10 +268,10 @@
           ],
           "disponible": true,
           "descripcion": "",
-          "tiene_video": false
+          "tiene_video": true
         },
         {
-          "carpeta": "03-cafe-con-leche-mediano#novideo",
+          "carpeta": "03-cafe-con-leche-mediano#video",
           "nombre": "Café con Leche Mediano",
           "sub": "",
           "jp": "カフェラテ",
@@ -283,10 +283,10 @@
           ],
           "disponible": true,
           "descripcion": "",
-          "tiene_video": false
+          "tiene_video": true
         },
         {
-          "carpeta": "04-filtrado#novideo",
+          "carpeta": "04-filtrado#video",
           "nombre": "Filtrado",
           "sub": "",
           "jp": "ドリップ",
@@ -298,10 +298,10 @@
           ],
           "disponible": true,
           "descripcion": "",
-          "tiene_video": false
+          "tiene_video": true
         },
         {
-          "carpeta": "05-moka#novideo",
+          "carpeta": "05-moka#video",
           "nombre": "Moka",
           "sub": "",
           "jp": "モカ",
@@ -313,10 +313,10 @@
           ],
           "disponible": true,
           "descripcion": "",
-          "tiene_video": false
+          "tiene_video": true
         },
         {
-          "carpeta": "06-cold-brew#novideo",
+          "carpeta": "06-cold-brew#video",
           "nombre": "Cold Brew",
           "sub": "",
           "jp": "水出し珈琲",
@@ -327,10 +327,10 @@
           ],
           "disponible": true,
           "descripcion": "Café infusionado en frío.",
-          "tiene_video": false
+          "tiene_video": true
         },
         {
-          "carpeta": "07-iced-espresso#novideo",
+          "carpeta": "07-iced-espresso#video",
           "nombre": "Iced Espresso",
           "sub": "",
           "jp": "アイスエスプレッソ",
@@ -341,7 +341,7 @@
           ],
           "disponible": true,
           "descripcion": "Combina tu espresso con: Naranja, Tónica o Ginger.",
-          "tiene_video": false
+          "tiene_video": true
         }
       ]
     },
@@ -353,7 +353,7 @@
       "intro": "",
       "items": [
         {
-          "carpeta": "01-chokoreto#novideo",
+          "carpeta": "01-chokoreto#video",
           "nombre": "Chokorēto",
           "sub": "",
           "jp": "チョコレート",
@@ -362,10 +362,10 @@
           "tags": [],
           "disponible": true,
           "descripcion": "Desde los mejores granos de cacao de la selva amazónica, para disfrutar un chocolate de calidad.",
-          "tiene_video": false
+          "tiene_video": true
         },
         {
-          "carpeta": "02-hojicha-latte#novideo",
+          "carpeta": "02-hojicha-latte#video",
           "nombre": "Hojicha Latte",
           "sub": "",
           "jp": "ほうじ茶",
@@ -377,10 +377,10 @@
           ],
           "disponible": true,
           "descripcion": "Cuando se trata de poca cafeína, té con un aroma ahumado y a nuez.",
-          "tiene_video": false
+          "tiene_video": true
         },
         {
-          "carpeta": "03-masala-chai-latte#novideo",
+          "carpeta": "03-masala-chai-latte#video",
           "nombre": "Masala Chai Latte",
           "sub": "",
           "jp": "マサラチャイ",
@@ -392,10 +392,10 @@
           ],
           "disponible": true,
           "descripcion": "Bebida de origen indio a base de té negro y especias.",
-          "tiene_video": false
+          "tiene_video": true
         },
         {
-          "carpeta": "04-sencha#novideo",
+          "carpeta": "04-sencha#video",
           "nombre": "Sencha",
           "sub": "",
           "jp": "煎茶",
@@ -406,10 +406,10 @@
           ],
           "disponible": true,
           "descripcion": "El té de todos los días en Japón, herbáceo y fresco.",
-          "tiene_video": false
+          "tiene_video": true
         },
         {
-          "carpeta": "05-rooibos#novideo",
+          "carpeta": "05-rooibos#video",
           "nombre": "Rooibos",
           "sub": "",
           "jp": "ルイボス",
@@ -421,10 +421,10 @@
           ],
           "disponible": true,
           "descripcion": "Infusión sudafricana de sabor suave, dulce y reconfortante.",
-          "tiene_video": false
+          "tiene_video": true
         },
         {
-          "carpeta": "06-jugos-naturales#novideo",
+          "carpeta": "06-jugos-naturales#video",
           "nombre": "Jugos Naturales",
           "sub": "",
           "jp": "ジュース",
@@ -433,10 +433,10 @@
           "tags": [],
           "disponible": true,
           "descripcion": "",
-          "tiene_video": false
+          "tiene_video": true
         },
         {
-          "carpeta": "07-kohi#novideo",
+          "carpeta": "07-kohi#video",
           "nombre": "Kohi",
           "sub": "",
           "jp": "コーヒー",
@@ -445,10 +445,10 @@
           "tags": [],
           "disponible": true,
           "descripcion": "",
-          "tiene_video": false
+          "tiene_video": true
         },
         {
-          "carpeta": "08-ginger#novideo",
+          "carpeta": "08-ginger#video",
           "nombre": "Ginger",
           "sub": "Chai u Original",
           "jp": "ジンジャー",
@@ -457,7 +457,7 @@
           "tags": [],
           "disponible": true,
           "descripcion": "Opciones: Chai y Original.",
-          "tiene_video": false
+          "tiene_video": true
         }
       ]
     },
@@ -469,7 +469,7 @@
       "intro": "",
       "items": [
         {
-          "carpeta": "01-pulled-beef#novideo",
+          "carpeta": "01-pulled-beef#video",
           "nombre": "Pulled Beef",
           "sub": "",
           "jp": "牛肉サンド",
@@ -478,10 +478,10 @@
           "tags": [],
           "disponible": true,
           "descripcion": "Pan de leche, Carne de Ternera Deshilachada, Coleslaw Tencha.",
-          "tiene_video": false
+          "tiene_video": true
         },
         {
-          "carpeta": "02-pulled-pork#novideo",
+          "carpeta": "02-pulled-pork#video",
           "nombre": "Pulled Pork",
           "sub": "",
           "jp": "豚肉サンド",
@@ -490,10 +490,10 @@
           "tags": [],
           "disponible": true,
           "descripcion": "Pan de leche, Carne de Cerdo Deshilachado, Coleslaw Tencha.",
-          "tiene_video": false
+          "tiene_video": true
         },
         {
-          "carpeta": "03-tamago#novideo",
+          "carpeta": "03-tamago#video",
           "nombre": "Tamago",
           "sub": "",
           "jp": "卵サンド",
@@ -502,10 +502,10 @@
           "tags": [],
           "disponible": true,
           "descripcion": "Pan de Leche, Huevo, Mayonesa Kewpie y Cebollín.",
-          "tiene_video": false
+          "tiene_video": true
         },
         {
-          "carpeta": "04-pan-de-queso#novideo",
+          "carpeta": "04-pan-de-queso#video",
           "nombre": "Pan de Queso",
           "sub": "",
           "jp": "チーズパン",
@@ -514,7 +514,7 @@
           "tags": [],
           "disponible": true,
           "descripcion": "",
-          "tiene_video": false
+          "tiene_video": true
         }
       ]
     },
@@ -526,7 +526,7 @@
       "intro": "",
       "items": [
         {
-          "carpeta": "01-bombones-de-chocolate#novideo",
+          "carpeta": "01-bombones-de-chocolate#video",
           "nombre": "Bombones de Chocolate",
           "sub": "",
           "jp": "ボンボン",
@@ -535,10 +535,10 @@
           "tags": [],
           "disponible": true,
           "descripcion": "",
-          "tiene_video": false
+          "tiene_video": true
         },
         {
-          "carpeta": "02-cheesecake#novideo",
+          "carpeta": "02-cheesecake#video",
           "nombre": "Cheesecake",
           "sub": "",
           "jp": "チーズケーキ",
@@ -547,10 +547,10 @@
           "tags": [],
           "disponible": true,
           "descripcion": "",
-          "tiene_video": false
+          "tiene_video": true
         },
         {
-          "carpeta": "03-blondie#novideo",
+          "carpeta": "03-blondie#video",
           "nombre": "Blondie",
           "sub": "",
           "jp": "ブロンディ",
@@ -559,10 +559,10 @@
           "tags": [],
           "disponible": true,
           "descripcion": "",
-          "tiene_video": false
+          "tiene_video": true
         },
         {
-          "carpeta": "04-cookie#novideo",
+          "carpeta": "04-cookie#video",
           "nombre": "Cookie",
           "sub": "",
           "jp": "クッキー",
@@ -571,7 +571,7 @@
           "tags": [],
           "disponible": true,
           "descripcion": "",
-          "tiene_video": false,
+          "tiene_video": true,
           "variantes": [
             {
               "nombre": "2 unidades por",
@@ -580,7 +580,7 @@
           ]
         },
         {
-          "carpeta": "05-mochis#novideo",
+          "carpeta": "05-mochis#video",
           "nombre": "Mochis",
           "sub": "",
           "jp": "餅",
@@ -589,7 +589,7 @@
           "tags": [],
           "disponible": true,
           "descripcion": "",
-          "tiene_video": false,
+          "tiene_video": true,
           "variantes": [
             {
               "nombre": "3 unidades por",
@@ -598,7 +598,7 @@
           ]
         },
         {
-          "carpeta": "06-muffin#novideo",
+          "carpeta": "06-muffin#video",
           "nombre": "Muffin",
           "sub": "",
           "jp": "マフィン",
@@ -607,10 +607,10 @@
           "tags": [],
           "disponible": true,
           "descripcion": "",
-          "tiene_video": false
+          "tiene_video": true
         },
         {
-          "carpeta": "07-canele#novideo",
+          "carpeta": "07-canele#video",
           "nombre": "Canelé",
           "sub": "",
           "jp": "カヌレ",
@@ -619,10 +619,10 @@
           "tags": [],
           "disponible": true,
           "descripcion": "",
-          "tiene_video": false
+          "tiene_video": true
         },
         {
-          "carpeta": "08-conchocolates#novideo",
+          "carpeta": "08-conchocolates#video",
           "nombre": "Conchocolate",
           "sub": "",
           "jp": "チョコレート",
@@ -631,7 +631,7 @@
           "tags": [],
           "disponible": true,
           "descripcion": "",
-          "tiene_video": false
+          "tiene_video": true
         }
       ]
     }

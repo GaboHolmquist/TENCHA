@@ -1292,7 +1292,7 @@
 
       const rawProdCarpeta = String(prod.carpeta || '').trim();
       const isRemoteCarpeta = /^https?:\/\//i.test(rawProdCarpeta);
-      const hasCatVid = cat && (cat.id === 'matcha-puro' || cat.id === 'mezclas' || cat.carpeta === '01-matcha-puro' || cat.carpeta === '02-creaciones-de-matcha');
+      const hasCatVid = true;
       const hasVid = rawProdCarpeta.endsWith('#video') || (!rawProdCarpeta.endsWith('#novideo') && Boolean(prod.tiene_video || hasCatVid));
 
       const newRec = {

@@ -204,19 +204,10 @@ function parseFolderMeta(rawCarpeta = '', catCarpeta = '') {
 function resolveRecVideo(rec, base, match, forceVideo = null) {
   if (forceVideo === false) return { hasVideo: false, videoUrl: '' };
   if (forceVideo === true && base) return { hasVideo: true, videoUrl: base + 'animacion.mp4' };
-  if (base && base.includes('recomendados/1')) {
-    return { hasVideo: true, videoUrl: base + 'animacion.mp4' };
-  }
-  if (rec && rec.tiene_video && base && !base.includes('recomendados/')) {
-    return { hasVideo: true, videoUrl: base + 'animacion.mp4' };
-  }
-  if (base && (base.includes('01-matcha-puro/') || base.includes('02-creaciones-de-matcha/'))) {
-    return { hasVideo: true, videoUrl: base + 'animacion.mp4' };
-  }
   if (match && match.hasVideo && match.videoUrl) {
     return { hasVideo: true, videoUrl: match.videoUrl };
   }
-  if (rec && rec.tiene_video && base) {
+  if (base) {
     return { hasVideo: true, videoUrl: base + 'animacion.mp4' };
   }
   return { hasVideo: false, videoUrl: '' };
@@ -792,7 +783,7 @@ async function init() {
   const data = await fetchMenuData();
   state.items = [];
   state.cats = (data.categorias || []).map((c) => {
-    const hasCatVideo = c.id === 'matcha-puro' || c.id === 'mezclas' || c.carpeta === '01-matcha-puro' || c.carpeta === '02-creaciones-de-matcha';
+    const hasCatVideo = true;
     const activeItems = (c.items || []).filter((item) => {
       syncItemTags(item);
       return isItemAvailable(item);
