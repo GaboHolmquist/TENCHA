@@ -732,7 +732,7 @@
   <main class="dashboard" id="dashboardView" style="display:none;">
     
     <!-- Stats -->
-    <div class="stats-bar">
+    <div class="stats-bar" style="margin-bottom: 12px;">
       <div class="stat-card">
         <span class="stat-val" id="statTotal">-</span>
         <span class="stat-lbl">Productos en Menú</span>
@@ -744,6 +744,26 @@
       <div class="stat-card">
         <span class="stat-val" style="color:var(--danger)" id="statInactive">-</span>
         <span class="stat-lbl">Pausados / Apagados</span>
+      </div>
+    </div>
+
+    <!-- Analítica de Visitas -->
+    <div class="stats-bar" style="margin-bottom: 24px;">
+      <div class="stat-card">
+        <span class="stat-val" style="color:#059669;" id="statVisitorsUnique">-</span>
+        <span class="stat-lbl">👥 Clientes Únicos</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-val" style="color:#2563eb;" id="statVisitsTotal">-</span>
+        <span class="stat-lbl">📖 Aperturas Totales</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-val" style="color:#7c3aed;" id="statVisitorsRecurrent">-</span>
+        <span class="stat-lbl">🔁 Clientes Recurrentes</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-val" style="color:#d97706;" id="statRecurrenceRate">-</span>
+        <span class="stat-lbl">📈 Tasa de Reincidencia</span>
       </div>
     </div>
 
@@ -1034,6 +1054,7 @@
 
         renderDashboard();
         updateStats();
+        loadVisitorStats();
       } catch (err) {
         showToast('Error al cargar datos: ' + err.message, false);
       }
@@ -1047,6 +1068,57 @@
       document.getElementById('statTotal').textContent = total;
       document.getElementById('statActive').textContent = active;
       document.getElementById('statInactive').textContent = inactive;
+    }
+
+    async function loadVisitorStats() {
+      const uEl = document.getElementById('statVisitorsUnique');
+      const tEl = document.getElementById('statVisitsTotal');
+      const rEl = document.getElementById('statVisitorsRecurrent');
+      const rateEl = document.getElementById('statRecurrenceRate');
+      if (!uEl || !tEl) return;
+
+      try {
+        let stats = null;
+        try {
+          const { data, error } = await supabaseClient.rpc('obtener_estadisticas_visitas');
+          if (!error && data) stats = data;
+        } catch (_) {}
+
+        if (!stats) {
+          const { data, error } = await supabaseClient
+            .from('visitas')
+            .select('visitor_id,es_recurrente');
+          if (!error && Array.isArray(data)) {
+            const total = data.length;
+            const counts = {};
+            data.forEach(r => {
+              counts[r.visitor_id] = (counts[r.visitor_id] || 0) + 1;
+            });
+            const unicos = Object.keys(counts).length;
+            const recurrentes = Object.values(counts).filter(c => c > 1).length;
+            stats = { total, unicos, recurrentes };
+          }
+        }
+
+        if (stats) {
+          const total = Number(stats.total || 0);
+          const unicos = Number(stats.unicos || 0);
+          const recurrentes = Number(stats.recurrentes || 0);
+          const rate = unicos > 0 ? Math.round((recurrentes / unicos) * 100) : 0;
+
+          uEl.textContent = unicos.toLocaleString('es-CL');
+          tEl.textContent = total.toLocaleString('es-CL');
+          rEl.textContent = recurrentes.toLocaleString('es-CL');
+          rateEl.textContent = `${rate}%`;
+        } else {
+          uEl.textContent = '0';
+          tEl.textContent = '0';
+          rEl.textContent = '0';
+          rateEl.textContent = '0%';
+        }
+      } catch (err) {
+        console.warn('Visitas no cargadas:', err);
+      }
     }
 
     // ---------- Render ----------

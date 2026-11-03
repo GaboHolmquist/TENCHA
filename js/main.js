@@ -778,8 +778,81 @@ async function fetchMenuData() {
   }
 }
 
+// ---------- Analítica de Visitas (Anónima y ligera) ----------
+async function trackAndLoadVisitorStats() {
+  const SUPABASE_URL = 'https://bkubdcfhgivgmckblsyt.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_5SF5J8y_r1KWJTU1aT_43w_VEKhdiqS';
+  const headers = {
+    'apikey': SUPABASE_KEY,
+    'Authorization': `Bearer ${SUPABASE_KEY}`,
+    'Content-Type': 'application/json'
+  };
+
+  try {
+    let vid = localStorage.getItem('tencha_vid');
+    let isRecurrent = false;
+    if (!vid) {
+      vid = 'v_' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+      localStorage.setItem('tencha_vid', vid);
+    } else {
+      isRecurrent = true;
+    }
+
+    const sessionKey = 'tencha_last_visit';
+    const lastVisit = parseInt(sessionStorage.getItem(sessionKey) || '0', 10);
+    const now = Date.now();
+    const shouldRecord = !lastVisit || (now - lastVisit > 30 * 60 * 1000);
+
+    if (shouldRecord) {
+      sessionStorage.setItem(sessionKey, String(now));
+      fetch(`${SUPABASE_URL}/rest/v1/visitas`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          visitor_id: vid,
+          es_recurrente: isRecurrent
+        })
+      }).catch(() => {});
+    }
+
+    let stats = null;
+    try {
+      const rpcRes = await fetch(`${SUPABASE_URL}/rest/v1/rpc/obtener_estadisticas_visitas`, {
+        method: 'POST',
+        headers
+      });
+      if (rpcRes.ok) stats = await rpcRes.json();
+    } catch (_) {}
+
+    if (!stats) {
+      const qRes = await fetch(`${SUPABASE_URL}/rest/v1/visitas?select=visitor_id,es_recurrente`, { headers });
+      if (qRes.ok) {
+        const rows = await qRes.json();
+        if (Array.isArray(rows) && rows.length > 0) {
+          const total = rows.length;
+          const uSet = new Set(rows.map(r => r.visitor_id));
+          const unicos = uSet.size;
+          stats = { total, unicos };
+        }
+      }
+    }
+
+    if (stats && (stats.total > 0 || stats.unicos > 0)) {
+      const counterEl = $('visitorCounter');
+      const textEl = $('visitorCountText');
+      if (counterEl && textEl) {
+        const totalFmt = Number(stats.total || 0).toLocaleString('es-CL');
+        const unicosFmt = Number(stats.unicos || 0).toLocaleString('es-CL');
+        textEl.textContent = `${unicosFmt} clientes • ${totalFmt} visitas`;
+        counterEl.style.display = 'inline-flex';
+      }
+    }
+  } catch (err) {}
+}
+
 // ---------- Init ----------
 async function init() {
+  trackAndLoadVisitorStats();
   const data = await fetchMenuData();
   state.items = [];
   state.cats = (data.categorias || []).map((c) => {

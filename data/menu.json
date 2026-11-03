@@ -1,39 +1,5 @@
 {
-  "recomendados": [
-    {
-      "id": 16,
-      "nombre": "Matcha Tónica Naranja",
-      "sub": "",
-      "jp": "抹茶トニック",
-      "precio": 5200,
-      "temperatura": "frio",
-      "tags": [
-        "frio"
-      ],
-      "disponible": true,
-      "descripcion": "Una bebida refrescante. (Matcha, Agua Tónica, Jugo de Naranja)",
-      "carpeta": "productos/02-creaciones-de-matcha/02-matcha-tonica-naranja",
-      "tiene_video": true,
-      "orden": 2
-    },
-    {
-      "id": 14,
-      "nombre": "Fruit Matcha",
-      "sub": "Leche entera o vegetal",
-      "jp": "果物抹茶",
-      "precio": 4800,
-      "temperatura": "ambos",
-      "tags": [
-        "frio",
-        "caliente"
-      ],
-      "disponible": true,
-      "descripcion": "Matcha, puré de fruta, leche vegetal o entera.",
-      "carpeta": "productos/02-creaciones-de-matcha/04-fruit-matcha",
-      "tiene_video": true,
-      "orden": 2
-    }
-  ],
+  "recomendados": [],
   "categorias": [
     {
       "id": "matcha-puro",
@@ -108,8 +74,7 @@
           "tags": [
             "frio",
             "caliente",
-            "vegano",
-            "agotado"
+            "vegano"
           ],
           "disponible": true,
           "descripcion": "Matcha, Leche de Coco y Yuzu.",
