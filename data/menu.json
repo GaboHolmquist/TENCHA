@@ -1,5 +1,58 @@
 {
-  "recomendados": [],
+  "recomendados": [
+    {
+      "id": 17,
+      "nombre": "Yuzu Coco",
+      "sub": "",
+      "jp": "柚子",
+      "precio": 5500,
+      "temperatura": "ambos",
+      "tags": [
+        "frio",
+        "caliente",
+        "vegano"
+      ],
+      "disponible": true,
+      "descripcion": "Matcha, Leche de Coco y Yuzu.",
+      "carpeta": "productos/02-creaciones-de-matcha/01-yuzu-coco",
+      "tiene_video": true,
+      "orden": 1
+    },
+    {
+      "id": 18,
+      "nombre": "Moka",
+      "sub": "",
+      "jp": "モカ",
+      "precio": 4900,
+      "temperatura": "ambos",
+      "tags": [
+        "frio",
+        "caliente"
+      ],
+      "disponible": true,
+      "descripcion": "",
+      "carpeta": "productos/03-cafe-de-especialidad/05-moka",
+      "tiene_video": true,
+      "orden": 2
+    },
+    {
+      "id": 19,
+      "nombre": "Rooibos",
+      "sub": "",
+      "jp": "ルイボス",
+      "precio": 2500,
+      "temperatura": "ambos",
+      "tags": [
+        "frio",
+        "caliente"
+      ],
+      "disponible": true,
+      "descripcion": "Infusión sudafricana de sabor suave, dulce y reconfortante.",
+      "carpeta": "productos/04-otras-bebidas/05-rooibos",
+      "tiene_video": true,
+      "orden": 3
+    }
+  ],
   "categorias": [
     {
       "id": "matcha-puro",
