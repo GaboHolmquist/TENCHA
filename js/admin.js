@@ -57,6 +57,87 @@
       });
     }
 
+    // ---------- Protección Anti-Fuerza Bruta ----------
+    const MAX_FAILED_ATTEMPTS = 4;
+    const LOCKOUT_DURATION_MS = 60 * 1000; // 1 minuto de bloqueo
+    let lockoutTimer = null;
+
+    function getFailedAttempts() {
+      return parseInt(localStorage.getItem('tencha_login_fails') || '0', 10);
+    }
+
+    function getLockoutUntil() {
+      return parseInt(localStorage.getItem('tencha_lockout_until') || '0', 10);
+    }
+
+    function checkLockoutStatus() {
+      const lockUntil = getLockoutUntil();
+      const now = Date.now();
+      if (lockUntil && lockUntil > now) {
+        applyLockoutUI(lockUntil);
+        return true;
+      }
+      if (lockUntil && lockUntil <= now) {
+        clearLockout();
+      }
+      return false;
+    }
+
+    function clearLockout() {
+      localStorage.removeItem('tencha_lockout_until');
+      localStorage.removeItem('tencha_login_fails');
+      if (lockoutTimer) {
+        clearInterval(lockoutTimer);
+        lockoutTimer = null;
+      }
+      const btn = document.getElementById('loginSubmitBtn');
+      const errEl = document.getElementById('loginError');
+      const emailInput = document.getElementById('loginEmail');
+      const passInput = document.getElementById('loginPassword');
+
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = 'Ingresar al Panel';
+      }
+      if (emailInput) emailInput.disabled = false;
+      if (passInput) passInput.disabled = false;
+      if (errEl && errEl.dataset.locked === 'true') {
+        errEl.style.display = 'none';
+        delete errEl.dataset.locked;
+      }
+    }
+
+    function applyLockoutUI(lockUntil) {
+      const btn = document.getElementById('loginSubmitBtn');
+      const errEl = document.getElementById('loginError');
+      const emailInput = document.getElementById('loginEmail');
+      const passInput = document.getElementById('loginPassword');
+
+      if (emailInput) emailInput.disabled = true;
+      if (passInput) passInput.disabled = true;
+      if (btn) btn.disabled = true;
+
+      if (lockoutTimer) clearInterval(lockoutTimer);
+
+      const updateUI = () => {
+        const remainingMs = lockUntil - Date.now();
+        if (remainingMs <= 0) {
+          clearLockout();
+          return;
+        }
+        const remainingSec = Math.ceil(remainingMs / 1000);
+        if (btn) btn.textContent = `Bloqueado (${remainingSec}s)`;
+        if (errEl) {
+          errEl.dataset.locked = 'true';
+          errEl.textContent = `🔒 Demasiados intentos fallidos. Acceso bloqueado temporalmente por seguridad. Inténtalo de nuevo en ${remainingSec} segundo${remainingSec === 1 ? '' : 's'}.`;
+          errEl.style.display = 'block';
+        }
+      };
+
+      updateUI();
+      lockoutTimer = setInterval(updateUI, 1000);
+    }
+
     // ---------- Auth ----------
     async function checkSession() {
       const { data: { session } } = await dbClient.auth.getSession();
@@ -76,6 +157,8 @@
 
     async function handleLogin(e) {
       e.preventDefault();
+      if (checkLockoutStatus()) return;
+
       const email = document.getElementById('loginEmail').value.trim();
       const password = document.getElementById('loginPassword').value;
       const btn = document.getElementById('loginSubmitBtn');
@@ -88,15 +171,25 @@
       try {
         const { data, error } = await dbClient.auth.signInWithPassword({ email, password });
         if (error) throw error;
+        clearLockout();
         state.user = data.user;
         resetInactivityTimer();
         showDashboard();
       } catch (err) {
-        errEl.textContent = 'Error: ' + (err.message || 'Credenciales inválidas');
-        errEl.style.display = 'block';
-      } finally {
-        btn.disabled = false;
-        btn.textContent = 'Ingresar al Panel';
+        const fails = getFailedAttempts() + 1;
+        localStorage.setItem('tencha_login_fails', String(fails));
+
+        if (fails >= MAX_FAILED_ATTEMPTS) {
+          const lockUntil = Date.now() + LOCKOUT_DURATION_MS;
+          localStorage.setItem('tencha_lockout_until', String(lockUntil));
+          applyLockoutUI(lockUntil);
+        } else {
+          const remaining = MAX_FAILED_ATTEMPTS - fails;
+          errEl.textContent = `Credenciales incorrectas. Te queda${remaining === 1 ? '' : 'n'} ${remaining} intento${remaining === 1 ? '' : 's'} antes del bloqueo temporal (1 min).`;
+          errEl.style.display = 'block';
+          btn.disabled = false;
+          btn.textContent = 'Ingresar al Panel';
+        }
       }
     }
 
@@ -118,6 +211,7 @@
       document.getElementById('loginView').style.display = 'flex';
       document.getElementById('dashboardView').style.display = 'none';
       document.getElementById('topbarActions').style.display = 'none';
+      checkLockoutStatus();
     }
 
     function showDashboard() {
