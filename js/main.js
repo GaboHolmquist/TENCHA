@@ -778,8 +778,8 @@ async function fetchMenuData() {
   }
 }
 
-// ---------- Analítica de Visitas (Anónima y ligera) ----------
-async function trackAndLoadVisitorStats() {
+// ---------- Analítica de Visitas (Anónima y ligera para Admin) ----------
+function trackVisitorSession() {
   const SUPABASE_URL = 'https://bkubdcfhgivgmckblsyt.supabase.co';
   const SUPABASE_KEY = 'sb_publishable_5SF5J8y_r1KWJTU1aT_43w_VEKhdiqS';
   const headers = {
@@ -814,45 +814,12 @@ async function trackAndLoadVisitorStats() {
         })
       }).catch(() => {});
     }
-
-    let stats = null;
-    try {
-      const rpcRes = await fetch(`${SUPABASE_URL}/rest/v1/rpc/obtener_estadisticas_visitas`, {
-        method: 'POST',
-        headers
-      });
-      if (rpcRes.ok) stats = await rpcRes.json();
-    } catch (_) {}
-
-    if (!stats) {
-      const qRes = await fetch(`${SUPABASE_URL}/rest/v1/visitas?select=visitor_id,es_recurrente`, { headers });
-      if (qRes.ok) {
-        const rows = await qRes.json();
-        if (Array.isArray(rows) && rows.length > 0) {
-          const total = rows.length;
-          const uSet = new Set(rows.map(r => r.visitor_id));
-          const unicos = uSet.size;
-          stats = { total, unicos };
-        }
-      }
-    }
-
-    if (stats && (stats.total > 0 || stats.unicos > 0)) {
-      const counterEl = $('visitorCounter');
-      const textEl = $('visitorCountText');
-      if (counterEl && textEl) {
-        const totalFmt = Number(stats.total || 0).toLocaleString('es-CL');
-        const unicosFmt = Number(stats.unicos || 0).toLocaleString('es-CL');
-        textEl.textContent = `${unicosFmt} clientes • ${totalFmt} visitas`;
-        counterEl.style.display = 'inline-flex';
-      }
-    }
   } catch (err) {}
 }
 
 // ---------- Init ----------
 async function init() {
-  trackAndLoadVisitorStats();
+  trackVisitorSession();
   const data = await fetchMenuData();
   state.items = [];
   state.cats = (data.categorias || []).map((c) => {

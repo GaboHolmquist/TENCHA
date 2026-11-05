@@ -283,37 +283,6 @@ body, .slide, .cat-card, .item-card, .popup-card {
   color: var(--matcha);
   flex-shrink: 0;
 }
-.stats-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 14px;
-  margin-bottom: 20px;
-  border-radius: 999px;
-  background: rgba(255, 248, 235, 0.035);
-  border: 1px solid rgba(255, 248, 235, 0.08);
-  color: var(--muted);
-  font-size: 0.74rem;
-  letter-spacing: 0.04em;
-  user-select: none;
-  transition: opacity 0.3s ease, border-color 0.2s ease;
-}
-.stats-pill:hover {
-  border-color: rgba(169, 196, 124, 0.25);
-}
-.stats-pill-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--matcha);
-  box-shadow: 0 0 6px var(--matcha);
-  animation: pulse-dot 2.4s infinite ease-in-out;
-  flex-shrink: 0;
-}
-@keyframes pulse-dot {
-  0%, 100% { opacity: 0.45; transform: scale(0.9); }
-  50% { opacity: 1; transform: scale(1.18); }
-}
 .stealth-dots {
   display: inline-block;
   margin-top: 20px;

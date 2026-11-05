@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>404 — Tencha Matcheria</title>
+  <meta name="theme-color" content="#1f1d1a">
+  <link rel="icon" type="image/png" href="/logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #1f1d1a;
+      --text: #f4eee3;
+      --muted: #b5ab9c;
+      --faint: #7d7469;
+      --matcha: #a9c47c;
+      --border: rgba(255, 248, 235, .09);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Outfit', system-ui, -apple-system, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      text-align: center;
+      background-image: radial-gradient(70rem 40rem at 50% 25%, rgba(201, 167, 124, .10), transparent 70%);
+      user-select: none;
+    }
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 32px;
+      max-width: 360px;
+    }
+    .error-code {
+      font-size: 5rem;
+      font-weight: 600;
+      line-height: 1;
+      letter-spacing: -0.03em;
+      color: var(--text);
+    }
+    .logo-wrap {
+      display: inline-block;
+      opacity: 0.85;
+      transition: opacity 0.25s ease, transform 0.25s ease;
+      text-decoration: none;
+    }
+    .logo-wrap:hover,
+    .logo-wrap:active {
+      opacity: 1;
+      transform: scale(1.03);
+    }
+    .logo-img {
+      height: 40px;
+      max-height: 40px;
+      width: auto;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1 class="error-code">404</h1>
+    <a href="/" class="logo-wrap" aria-label="Tencha Matcheria — Volver al inicio">
+      <picture>
+        <source srcset="/logo.webp" type="image/webp">
+        <img src="/logo.png" alt="Tencha Matcheria" class="logo-img" width="110" height="45" draggable="false">
+      </picture>
+    </a>
+  </div>
+</body>
+</html>
