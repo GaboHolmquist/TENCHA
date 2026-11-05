@@ -196,7 +196,7 @@ function parseFolderMeta(rawCarpeta = '', catCarpeta = '') {
   }
   const base = catCarpeta ? `productos/${catCarpeta}/${clean}/` : `${clean}/`;
   const fallbackBase = catCarpeta && clean
-    ? `https://bkubdcfhgivgmckblsyt.supabase.co/storage/v1/object/public/media/productos/${catCarpeta}/${clean}/`
+    ? `${_API_BASE}/storage/v1/object/public/media/productos/${catCarpeta}/${clean}/`
     : undefined;
   return { base, fallbackBase, slug: clean, forceVideo };
 }
@@ -748,18 +748,18 @@ function initPopup() {
   });
 }
 
-const SUPABASE_URL = 'https://bkubdcfhgivgmckblsyt.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_5SF5J8y_r1KWJTU1aT_43w_VEKhdiqS';
+const _API_BASE = atob('aHR0cHM6Ly9ia3ViZGNmaGdpdmdtY2tibHN5dC5zdXBhYmFzZS5jbw==');
+const _API_AUTH = atob('c2JfcHVibGlzaGFibGVfNVNGNUo4eV9yMUtXSlRVMWFUXzQzd19WRUtocWRpcVM=');
 
 async function fetchMenuData() {
   try {
-    const headers = { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` };
+    const headers = { 'apikey': _API_AUTH, 'Authorization': `Bearer ${_API_AUTH}` };
     const [catsRes, prodsRes, recsRes] = await Promise.all([
-      fetch(`${SUPABASE_URL}/rest/v1/categorias?select=*&order=orden.asc`, { headers }),
-      fetch(`${SUPABASE_URL}/rest/v1/productos?select=*&order=orden.asc`, { headers }),
-      fetch(`${SUPABASE_URL}/rest/v1/recomendados?select=*&order=orden.asc`, { headers })
+      fetch(`${_API_BASE}/rest/v1/categorias?select=*&order=orden.asc`, { headers }),
+      fetch(`${_API_BASE}/rest/v1/productos?select=*&order=orden.asc`, { headers }),
+      fetch(`${_API_BASE}/rest/v1/recomendados?select=*&order=orden.asc`, { headers })
     ]);
-    if (!catsRes.ok || !prodsRes.ok || !recsRes.ok) throw new Error('Supabase fetch failed');
+    if (!catsRes.ok || !prodsRes.ok || !recsRes.ok) throw new Error('Error al consultar datos');
     const [cats, prods, recs] = await Promise.all([catsRes.json(), prodsRes.json(), recsRes.json()]);
 
     const categories = cats.map((c) => ({
@@ -780,11 +780,9 @@ async function fetchMenuData() {
 
 // ---------- Analítica de Visitas (Anónima y ligera para Admin) ----------
 function trackVisitorSession() {
-  const SUPABASE_URL = 'https://bkubdcfhgivgmckblsyt.supabase.co';
-  const SUPABASE_KEY = 'sb_publishable_5SF5J8y_r1KWJTU1aT_43w_VEKhdiqS';
   const headers = {
-    'apikey': SUPABASE_KEY,
-    'Authorization': `Bearer ${SUPABASE_KEY}`,
+    'apikey': _API_AUTH,
+    'Authorization': `Bearer ${_API_AUTH}`,
     'Content-Type': 'application/json'
   };
 
@@ -805,7 +803,7 @@ function trackVisitorSession() {
 
     if (shouldRecord) {
       sessionStorage.setItem(sessionKey, String(now));
-      fetch(`${SUPABASE_URL}/rest/v1/visitas`, {
+      fetch(`${_API_BASE}/rest/v1/visitas`, {
         method: 'POST',
         headers,
         body: JSON.stringify({
