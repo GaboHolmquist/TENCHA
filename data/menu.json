@@ -100,9 +100,9 @@
           "temperatura": "caliente",
           "tags": [
             "caliente",
-            "agotado",
             "vegano",
-            "sin_gluten"
+            "sin_gluten",
+            "agotado"
           ],
           "disponible": false,
           "descripcion": "Canon f1",
