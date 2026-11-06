@@ -283,19 +283,6 @@ body, .slide, .cat-card, .item-card, .popup-card {
   color: var(--matcha);
   flex-shrink: 0;
 }
-.stealth-dots {
-  display: inline-block;
-  margin-top: 20px;
-  color: rgba(255, 255, 255, 0.12);
-  font-size: 0.95rem;
-  letter-spacing: 0.4em;
-  text-decoration: none;
-  cursor: pointer;
-  padding: 10px 24px;
-  user-select: none;
-  transition: color 0.3s ease;
-}
-.stealth-dots:hover { color: rgba(255, 255, 255, 0.28); }
 
 @media (min-width: 720px) {
   .slide { aspect-ratio: 16 / 10; }
