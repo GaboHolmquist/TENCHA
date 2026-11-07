@@ -214,6 +214,28 @@ body, .slide, .cat-card, .item-card, .popup-card {
 .item-card .overlay-price { font-size: .85rem; left: 12px; bottom: 12px; }
 .item-card .overlay-top { padding: 14px 14px 36px; }
 
+/* Video preview en tarjeta (Scroll / Focus inteligente) */
+.card-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: right center;
+  opacity: 0;
+  transition: opacity .55s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+  z-index: 1;
+}
+.card-video.playing {
+  opacity: 1;
+}
+.item-card .overlay-top,
+.item-card .overlay-price,
+.item-card .overlay-icons {
+  z-index: 2;
+}
+
 /* Popup: misma proporción 4:5 que la tarjeta */
 /* Tamaño fijo: no cambia entre productos (las flechas no se mueven) */
 .popup {

@@ -51,6 +51,20 @@
       "carpeta": "productos/04-otras-bebidas/05-rooibos",
       "tiene_video": true,
       "orden": 3
+    },
+    {
+      "id": 20,
+      "nombre": "Pulled Pork",
+      "sub": "",
+      "jp": "豚肉サンド",
+      "precio": 8900,
+      "temperatura": "",
+      "tags": [],
+      "disponible": true,
+      "descripcion": "Pan de leche, Carne de Cerdo Deshilachado, Coleslaw Tencha.",
+      "carpeta": "productos/05-sandos/02-pulled-pork",
+      "tiene_video": true,
+      "orden": 4
     }
   ],
   "categorias": [

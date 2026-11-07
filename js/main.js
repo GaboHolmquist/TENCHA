@@ -24,6 +24,9 @@ const nameBlock = (es, sub, jp) =>
 // Normaliza texto (sin tildes ni mayúsculas) para comparar nombres
 const norm = (s = '') => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
 
+// Controlador global para reproducción sutil de video al pausar el scroll (Viewport Focus)
+let cardVideoController = null;
+
 // Caché en memoria de imágenes y videos de productos para reproducción instantánea
 const imgCache = new Map();
 const videoCache = new Map();
@@ -516,6 +519,9 @@ function renderMenu() {
       card.className = 'item-card glass' + (isAgotado ? ' agotado' : '');
       card.id = 'item-' + c.id + '-' + item.carpeta;
       card.dataset.index = String(state.items.indexOf(item));
+      if (item.hasVideo && !isAgotado) {
+        card.dataset.hasVideo = '1';
+      }
       const icons = (item.tags || []).map((t) => (t === 'frio' ? '❄' : t === 'caliente' ? '🔥' : '')).filter(Boolean).join(' ');
       card.appendChild(mediaImg(item.base + 'foto.jpg', item));
       card.insertAdjacentHTML('beforeend', `<div class="overlay-top">${nameBlock(item.nombre, item.sub, item.jp)}</div><div class="overlay-price">${fmt(item.precio)}</div>${icons ? `<div class="overlay-icons">${icons}</div>` : ''}${isAgotado ? '<div class="overlay-agotado">Agotado</div>' : ''}`);
@@ -548,6 +554,136 @@ function initReveal() {
     entries.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); } });
   }, { threshold: 0.1 });
   document.querySelectorAll('.item-card').forEach((c) => io.observe(c));
+}
+
+// ---------- Reproducción sutil e inteligente por scroll (Viewport Focus) ----------
+function initCardVideoFocus() {
+  let dwellTimer = null;
+  let activeCard = null;
+  let activeVideo = null;
+  let fadeOutTimer = null;
+
+  function stopActive(immediate = false) {
+    if (dwellTimer) {
+      clearTimeout(dwellTimer);
+      dwellTimer = null;
+    }
+    if (fadeOutTimer) {
+      clearTimeout(fadeOutTimer);
+      fadeOutTimer = null;
+    }
+    if (activeVideo) {
+      const v = activeVideo;
+      v.classList.remove('playing');
+      if (immediate) {
+        v.pause();
+        try { v.currentTime = 0; } catch (_) {}
+      } else {
+        fadeOutTimer = setTimeout(() => {
+          v.pause();
+          try { v.currentTime = 0; } catch (_) {}
+        }, 550);
+      }
+    }
+    activeCard = null;
+    activeVideo = null;
+  }
+
+  function getEligibleCardsInFocus() {
+    const list = $('menuList');
+    if (!list || list.hidden) return [];
+
+    const cards = Array.from(document.querySelectorAll('.item-card[data-has-video="1"]:not(.agotado)'));
+    if (!cards.length) return [];
+
+    const vh = window.innerHeight;
+    // Zona de enfoque visual: tercio superior-medio de la pantalla (entre 22% y 56% de altura visible)
+    const focusTop = vh * 0.22;
+    const focusBottom = vh * 0.56;
+
+    return cards.filter((card) => {
+      if (card.offsetParent === null) return false;
+      const rect = card.getBoundingClientRect();
+      const cardCenterY = rect.top + rect.height * 0.5;
+      return cardCenterY >= focusTop && cardCenterY <= focusBottom;
+    });
+  }
+
+  function scheduleFocus() {
+    stopActive(false);
+
+    const dlg = $('productPopup');
+    if (dlg && dlg.open) return;
+
+    // Pausa deliberada de 2.3s: solo si el cliente frena a mirar se activa
+    dwellTimer = setTimeout(() => {
+      if (dlg && dlg.open) return;
+
+      const candidates = getEligibleCardsInFocus();
+      if (!candidates.length) return;
+
+      // Variación orgánica: 25% de probabilidad de mantenerse estático en esa parada
+      // para que se sienta natural y no robótico en cada pausa
+      if (Math.random() < 0.25) return;
+
+      // Si hay 2 tarjetas en la fila (izq / der), se elige una al azar (50/50)
+      const chosenCard = candidates[Math.floor(Math.random() * candidates.length)];
+      if (!chosenCard) return;
+
+      const idx = Number(chosenCard.dataset.index);
+      const item = state.items[idx];
+      if (!item || !item.hasVideo) return;
+
+      let videoEl = chosenCard.querySelector('.card-video');
+      if (!videoEl) {
+        const videoUrl = item.videoUrl || (item.base + 'animacion.mp4');
+        videoEl = document.createElement('video');
+        videoEl.className = 'card-video media-fill';
+        videoEl.muted = true;
+        videoEl.loop = true;
+        videoEl.playsInline = true;
+        videoEl.setAttribute('muted', '');
+        videoEl.setAttribute('playsinline', '');
+        videoEl.setAttribute('webkit-playsinline', '');
+        videoEl.preload = 'auto';
+        videoEl.src = videoUrl;
+        const firstOverlay = chosenCard.querySelector('.overlay-top');
+        if (firstOverlay) {
+          chosenCard.insertBefore(videoEl, firstOverlay);
+        } else {
+          chosenCard.appendChild(videoEl);
+        }
+      }
+
+      activeCard = chosenCard;
+      activeVideo = videoEl;
+
+      const playPromise = videoEl.play();
+      if (playPromise !== undefined) {
+        playPromise.then(() => {
+          if (activeVideo === videoEl) {
+            videoEl.classList.add('playing');
+          }
+        }).catch(() => {});
+      }
+    }, 2300);
+  }
+
+  window.addEventListener('scroll', scheduleFocus, { passive: true });
+
+  const dlg = $('productPopup');
+  if (dlg) {
+    dlg.addEventListener('close', () => {
+      scheduleFocus();
+    });
+  }
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) stopActive(true);
+    else scheduleFocus();
+  });
+
+  return { stopActive, scheduleFocus };
 }
 
 // ---------- Popup ----------
@@ -643,6 +779,7 @@ function wirePopupCardButtons(card, dlg) {
 }
 
 function openItem(idx, list = state.items, dir = 0) {
+  if (cardVideoController) cardVideoController.stopActive(true);
   const item = list[idx];
   if (!item) return;
   state.current = idx;
@@ -847,6 +984,7 @@ async function init() {
   renderCategories();
   renderMenu();
   initPopup();
+  cardVideoController = initCardVideoFocus();
 
   // Botones de filtro dietario en portada
   const btnVegano = $('btnFilterVegano');
