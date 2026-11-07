@@ -232,18 +232,32 @@ body, .slide, .cat-card, .item-card, .popup-card {
   height: 100%;
   object-fit: cover;
   object-position: right center;
-  opacity: 0;
-  transition: opacity .55s cubic-bezier(0.4, 0, 0.2, 1);
   pointer-events: none;
   z-index: 1;
-}
-.card-video.playing {
-  opacity: 1;
 }
 .item-card .overlay-top,
 .item-card .overlay-price,
 .item-card .overlay-icons {
   z-index: 2;
+}
+
+/* Crossfade universal de 0.3s para bucles e inicio/fin de video */
+.video-crossfade {
+  opacity: 0;
+  transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.video-crossfade.fade-visible {
+  opacity: 1;
+}
+
+.popup-slide video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: right center;
+  z-index: 1;
 }
 
 /* Popup: misma proporción 4:5 que la tarjeta */
