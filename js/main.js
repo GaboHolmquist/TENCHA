@@ -31,67 +31,6 @@ let cardVideoController = null;
 const imgCache = new Map();
 const videoCache = new Map();
 
-// Aplica crossfade suave de 0.3s al iniciar, terminar y reiniciar en bucle a cualquier video
-function attachSeamlessLoop(video) {
-  if (!video || video._hasSeamlessLoop) return;
-  video._hasSeamlessLoop = true;
-  video.classList.add('video-crossfade');
-
-  let rafId = null;
-  let fadingOut = false;
-
-  function checkFrame() {
-    if (video.paused || video.ended) {
-      rafId = null;
-      return;
-    }
-
-    const d = video.duration;
-    if (d && !isNaN(d) && d > 0.8) {
-      const ct = video.currentTime;
-      const remaining = d - ct;
-
-      // Inicia el desvanecimiento de salida 0.3s antes de llegar al final del archivo
-      if (remaining <= 0.32 && !fadingOut) {
-        fadingOut = true;
-        video.classList.remove('fade-visible');
-      } else if (ct <= 0.25 && fadingOut) {
-        // El video ya reinició el bucle (volvió al segundo 0): desvanecimiento de entrada
-        fadingOut = false;
-        video.classList.add('fade-visible');
-      }
-    }
-
-    rafId = requestAnimationFrame(checkFrame);
-  }
-
-  video.addEventListener('play', () => {
-    if (!fadingOut) {
-      video.classList.add('fade-visible');
-    }
-    if (!rafId) rafId = requestAnimationFrame(checkFrame);
-  });
-
-  video.addEventListener('pause', () => {
-    if (rafId) {
-      cancelAnimationFrame(rafId);
-      rafId = null;
-    }
-  });
-
-  video.addEventListener('seeking', () => {
-    if (video.currentTime <= 0.25) {
-      fadingOut = false;
-      video.classList.add('fade-visible');
-    }
-  });
-
-  if (!video.paused && video.readyState >= 2) {
-    video.classList.add('fade-visible');
-    if (!rafId) rafId = requestAnimationFrame(checkFrame);
-  }
-}
-
 function createVideoElement(url) {
   const v = document.createElement('video');
   Object.assign(v, {
@@ -106,7 +45,6 @@ function createVideoElement(url) {
   v.setAttribute('playsinline', '');
   v.setAttribute('webkit-playsinline', '');
   v.src = url;
-  attachSeamlessLoop(v);
   return v;
 }
 
@@ -381,7 +319,6 @@ function renderCarousel(list) {
       v.preload = idx === 0 ? 'auto' : 'metadata';
       const videoUrl = item.videoUrl || (item.base + 'animacion.mp4');
       v.src = videoUrl;
-      attachSeamlessLoop(v);
       s.appendChild(v);
       if (idx === 0) {
         v.play().catch(() => {});
@@ -737,7 +674,6 @@ function initCardVideoFocus() {
     if (activeVideo) {
       const v = activeVideo;
       v.classList.remove('playing');
-      v.classList.remove('fade-visible');
       if (immediate) {
         v.pause();
         try { v.currentTime = 0; } catch (_) {}
@@ -794,7 +730,6 @@ function initCardVideoFocus() {
       videoEl.setAttribute('webkit-playsinline', '');
       videoEl.preload = 'auto';
       videoEl.src = videoUrl;
-      attachSeamlessLoop(videoEl);
       const firstOverlay = card.querySelector('.overlay-top');
       if (firstOverlay) {
         card.insertBefore(videoEl, firstOverlay);
@@ -811,7 +746,6 @@ function initCardVideoFocus() {
       playPromise.then(() => {
         if (activeCard === card && isCardInBand(card)) {
           videoEl.classList.add('playing');
-          videoEl.classList.add('fade-visible');
         }
       }).catch(() => {});
     }
@@ -898,11 +832,10 @@ function buildSlideMedia(item) {
         ? createVideoElement(videoUrl)
         : entry.video;
       v.currentTime = 0;
-      attachSeamlessLoop(v);
       v.addEventListener('error', () => {
         if (slide.isConnected) slide.replaceChildren(makePhoto());
       }, { once: true });
-      slide.replaceChildren(makePhoto(), v);
+      slide.replaceChildren(v);
       const p = v.play();
       if (p && typeof p.catch === 'function') {
         p.catch(() => {
