@@ -929,7 +929,7 @@ function initPopup() {
 }
 
 const _API_BASE = atob('aHR0cHM6Ly9ia3ViZGNmaGdpdmdtY2tibHN5dC5zdXBhYmFzZS5jbw==');
-const _API_AUTH = atob('c2JfcHVibGlzaGFibGVfNVNGNUo4eV9yMUtXSlRVMWFUXzQzd19WRUtocWRpcVM=');
+const _API_AUTH = atob('c2JfcHVibGlzaGFibGVfNVNGNUo4eV9yMUtXSlRVMWFUXzQzd19WRUtoZGlxUw==');
 
 async function fetchMenuData() {
   try {
