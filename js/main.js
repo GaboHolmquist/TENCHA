@@ -395,7 +395,10 @@ function renderCarousel(list) {
     const d = document.createElement('button');
     d.className = 'dot' + (idx === 0 ? ' active' : '');
     d.setAttribute('aria-label', 'Destacado ' + (idx + 1));
-    d.onclick = () => car.scrollTo({ left: car.clientWidth * idx, behavior: 'smooth' });
+    d.onclick = () => {
+      car.scrollTo({ left: car.clientWidth * idx, behavior: 'smooth' });
+      scheduleNextSlide();
+    };
     dots.appendChild(d);
   });
 
@@ -419,25 +422,49 @@ function renderCarousel(list) {
 
   car.addEventListener('scroll', () => requestAnimationFrame(update));
 
-  // Pausar los videos del carrusel si el usuario scrollea hacia abajo y sale de la pantalla
+  let autoSlideTimer = null;
+  let paused = false;
+
+  // Sincronizado a 4.2s (cada video dura 4.04s): termina la animación completa y hace swipe al siguiente
+  function scheduleNextSlide() {
+    if (autoSlideTimer) clearTimeout(autoSlideTimer);
+    autoSlideTimer = setTimeout(() => {
+      if (paused || document.hidden || !list.length) return;
+      const cur = Math.round(car.scrollLeft / car.clientWidth);
+      const next = (cur + 1) % list.length;
+      car.scrollTo({ left: car.clientWidth * next, behavior: 'smooth' });
+      scheduleNextSlide();
+    }, 4200);
+  }
+
+  car.addEventListener('pointerdown', () => {
+    paused = true;
+    if (autoSlideTimer) clearTimeout(autoSlideTimer);
+  });
+  const resumePointer = () => {
+    if (!paused) return;
+    paused = false;
+    scheduleNextSlide();
+  };
+  car.addEventListener('pointerup', resumePointer);
+  car.addEventListener('pointercancel', resumePointer);
+  car.addEventListener('pointerleave', resumePointer);
+
+  // Pausar los videos y el temporizador si el usuario scrollea hacia abajo fuera del carrusel
   const heroObserver = new IntersectionObserver((entries) => {
     entries.forEach((e) => {
       if (!e.isIntersecting) {
+        if (autoSlideTimer) clearTimeout(autoSlideTimer);
         car.querySelectorAll('video').forEach((v) => { if (!v.paused) v.pause(); });
       } else {
         update();
+        scheduleNextSlide();
       }
     });
   }, { threshold: 0.1 });
   heroObserver.observe(car);
 
-  let paused = false;
-  car.addEventListener('pointerdown', () => (paused = true));
-  setInterval(() => {
-    if (paused || document.hidden || !list.length) return;
-    const i = (Math.round(car.scrollLeft / car.clientWidth) + 1) % list.length;
-    car.scrollTo({ left: car.clientWidth * i, behavior: 'smooth' });
-  }, 4500);
+  scheduleNextSlide();
 }
 
 // ---------- Categorías (tiritas horizontales 21:9 con texto a la izquierda e imagen a la derecha) ----------
