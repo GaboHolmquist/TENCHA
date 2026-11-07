@@ -293,27 +293,80 @@ function renderCarousel(list) {
   car.innerHTML = '';
   dots.innerHTML = '';
   if (!list || list.length === 0) return;
-  // Precarga en memoria los videos de los recomendados para que al abrir el globo aparezcan al instante
+
+  // Precarga en memoria los videos de los recomendados
   list.forEach((it) => preloadItemMedia(it, true));
+
   list.forEach((item, idx) => {
     const isAgotado = isItemAgotado(item);
     const s = document.createElement('div');
     s.className = 'slide' + (isAgotado ? ' agotado' : '');
+
+    // Foto base como póster/respaldo inmediato (evita pantalla en negro mientras el video inicia)
     s.appendChild(mediaImg(item.base + 'foto.webp', item, item.nombre, idx === 0));
+
+    // Video en loop silencioso como protagonista visual
+    if (item.hasVideo) {
+      const v = document.createElement('video');
+      v.className = 'slide-video media-fill';
+      v.muted = true;
+      v.loop = true;
+      v.playsInline = true;
+      v.setAttribute('muted', '');
+      v.setAttribute('playsinline', '');
+      v.setAttribute('webkit-playsinline', '');
+      v.preload = idx === 0 ? 'auto' : 'metadata';
+      const videoUrl = item.videoUrl || (item.base + 'animacion.mp4');
+      v.src = videoUrl;
+      s.appendChild(v);
+      if (idx === 0) {
+        v.play().catch(() => {});
+      }
+    }
+
     s.insertAdjacentHTML('beforeend', `<div class="overlay-top">${nameBlock(item.nombre)}</div><div class="overlay-price">${fmt(item.precio)}</div>${isAgotado ? '<div class="overlay-agotado">Agotado</div>' : ''}`);
     s.onclick = () => openItem(idx, list);
     car.appendChild(s);
+
     const d = document.createElement('button');
     d.className = 'dot' + (idx === 0 ? ' active' : '');
     d.setAttribute('aria-label', 'Destacado ' + (idx + 1));
     d.onclick = () => car.scrollTo({ left: car.clientWidth * idx, behavior: 'smooth' });
     dots.appendChild(d);
   });
+
   const update = () => {
     const i = Math.round(car.scrollLeft / car.clientWidth);
     [...dots.children].forEach((d, k) => d.classList.toggle('active', k === i));
+
+    // Solo reproduce el video del slide visible y pausa los demás para ahorrar batería
+    const slides = car.querySelectorAll('.slide');
+    slides.forEach((slide, k) => {
+      const v = slide.querySelector('video');
+      if (v) {
+        if (k === i) {
+          if (v.paused) v.play().catch(() => {});
+        } else {
+          if (!v.paused) v.pause();
+        }
+      }
+    });
   };
+
   car.addEventListener('scroll', () => requestAnimationFrame(update));
+
+  // Pausar los videos del carrusel si el usuario scrollea hacia abajo y sale de la pantalla
+  const heroObserver = new IntersectionObserver((entries) => {
+    entries.forEach((e) => {
+      if (!e.isIntersecting) {
+        car.querySelectorAll('video').forEach((v) => { if (!v.paused) v.pause(); });
+      } else {
+        update();
+      }
+    });
+  }, { threshold: 0.1 });
+  heroObserver.observe(car);
+
   let paused = false;
   car.addEventListener('pointerdown', () => (paused = true));
   setInterval(() => {
@@ -718,6 +771,12 @@ function initCardVideoFocus() {
   if (dlg) {
     dlg.addEventListener('close', () => {
       setTimeout(handleScroll, 100);
+      const car = $('carousel');
+      if (car && window.scrollY < 300) {
+        const i = Math.round(car.scrollLeft / car.clientWidth);
+        const v = car.querySelectorAll('.slide')[i]?.querySelector('video');
+        if (v && v.paused) v.play().catch(() => {});
+      }
     });
   }
 
@@ -823,6 +882,8 @@ function wirePopupCardButtons(card, dlg) {
 
 function openItem(idx, list = state.items, dir = 0) {
   if (cardVideoController) cardVideoController.stopActive(true);
+  const car = $('carousel');
+  if (car) car.querySelectorAll('video').forEach((v) => { if (!v.paused) v.pause(); });
   const item = list[idx];
   if (!item) return;
   state.current = idx;

@@ -144,8 +144,18 @@ body, .slide, .cat-card, .item-card, .popup-card {
   flex: 0 0 100%; scroll-snap-align: center; position: relative;
   aspect-ratio: 4 / 5; cursor: pointer; overflow: hidden;
 }
-.slide .overlay-top { padding: 28px 26px 80px; font-size: 1.9rem; }
-.slide .overlay-price { left: 26px; bottom: 24px; font-size: 1rem; }
+.slide .overlay-top { padding: 28px 26px 80px; font-size: 1.9rem; z-index: 2; }
+.slide .overlay-price { left: 26px; bottom: 24px; font-size: 1rem; z-index: 2; }
+.slide-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: right center;
+  pointer-events: none;
+  z-index: 1;
+}
 .dots { display: flex; justify-content: center; gap: 8px; margin-top: 14px; }
 .dot { width: 6px; height: 6px; border-radius: 99px; background: #4a453e; transition: all .3s; }
 .dot.active { width: 22px; background: var(--matcha); }
