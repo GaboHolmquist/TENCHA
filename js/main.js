@@ -556,12 +556,30 @@ function initReveal() {
   document.querySelectorAll('.item-card').forEach((c) => io.observe(c));
 }
 
-// ---------- Reproducción sutil e inteligente por scroll (Viewport Focus) ----------
+// ---------- Reproducción inteligente por banda de visualización (Active Viewport Band) ----------
 function initCardVideoFocus() {
   let dwellTimer = null;
   let activeCard = null;
   let activeVideo = null;
   let fadeOutTimer = null;
+
+  function getBandBounds() {
+    const vh = window.innerHeight;
+    // La banda superior-central: justo debajo del encabezado/chips (~120px)
+    // hasta la mitad de la pantalla (el tercio superior visible donde se ubica el bloque activo)
+    const bandTop = Math.max(115, vh * 0.15);
+    const bandBottom = vh * 0.52;
+    return { bandTop, bandBottom };
+  }
+
+  function isCardInBand(card) {
+    if (!card || card.offsetParent === null) return false;
+    const rect = card.getBoundingClientRect();
+    const { bandTop, bandBottom } = getBandBounds();
+    const cardCenterY = rect.top + rect.height * 0.5;
+    // Está dentro si su centro vertical se ubica dentro de la banda y es visible en pantalla
+    return cardCenterY >= bandTop && cardCenterY <= bandBottom && rect.bottom > bandTop && rect.top < window.innerHeight;
+  }
 
   function stopActive(immediate = false) {
     if (dwellTimer) {
@@ -582,108 +600,133 @@ function initCardVideoFocus() {
         fadeOutTimer = setTimeout(() => {
           v.pause();
           try { v.currentTime = 0; } catch (_) {}
-        }, 550);
+        }, 400);
       }
     }
     activeCard = null;
     activeVideo = null;
   }
 
-  function getEligibleCardsInFocus() {
+  function getEligibleCardsInBand() {
     const list = $('menuList');
     if (!list || list.hidden) return [];
 
     const cards = Array.from(document.querySelectorAll('.item-card[data-has-video="1"]:not(.agotado)'));
     if (!cards.length) return [];
 
-    const vh = window.innerHeight;
-    // Zona de enfoque visual: tercio superior-medio de la pantalla (entre 22% y 56% de altura visible)
-    const focusTop = vh * 0.22;
-    const focusBottom = vh * 0.56;
-
-    return cards.filter((card) => {
-      if (card.offsetParent === null) return false;
-      const rect = card.getBoundingClientRect();
-      const cardCenterY = rect.top + rect.height * 0.5;
-      return cardCenterY >= focusTop && cardCenterY <= focusBottom;
-    });
+    return cards.filter(isCardInBand);
   }
 
-  function scheduleFocus() {
-    stopActive(false);
+  function playCard(card) {
+    if (!card || card === activeCard) return;
 
+    // Si había otra tarjeta activa, desvanecerla
+    if (activeVideo && activeCard !== card) {
+      const oldVideo = activeVideo;
+      oldVideo.classList.remove('playing');
+      setTimeout(() => {
+        if (activeVideo !== oldVideo) {
+          oldVideo.pause();
+          try { oldVideo.currentTime = 0; } catch (_) {}
+        }
+      }, 400);
+    }
+
+    const idx = Number(card.dataset.index);
+    const item = state.items[idx];
+    if (!item || !item.hasVideo) return;
+
+    let videoEl = card.querySelector('.card-video');
+    if (!videoEl) {
+      const videoUrl = item.videoUrl || (item.base + 'animacion.mp4');
+      videoEl = document.createElement('video');
+      videoEl.className = 'card-video media-fill';
+      videoEl.muted = true;
+      videoEl.loop = true;
+      videoEl.playsInline = true;
+      videoEl.setAttribute('muted', '');
+      videoEl.setAttribute('playsinline', '');
+      videoEl.setAttribute('webkit-playsinline', '');
+      videoEl.preload = 'auto';
+      videoEl.src = videoUrl;
+      const firstOverlay = card.querySelector('.overlay-top');
+      if (firstOverlay) {
+        card.insertBefore(videoEl, firstOverlay);
+      } else {
+        card.appendChild(videoEl);
+      }
+    }
+
+    activeCard = card;
+    activeVideo = videoEl;
+
+    const playPromise = videoEl.play();
+    if (playPromise !== undefined) {
+      playPromise.then(() => {
+        if (activeCard === card && isCardInBand(card)) {
+          videoEl.classList.add('playing');
+        }
+      }).catch(() => {});
+    }
+  }
+
+  function handleScroll() {
     const dlg = $('productPopup');
     if (dlg && dlg.open) return;
 
-    // Pausa deliberada de 2.3s: solo si el cliente frena a mirar se activa
+    // 1. REGLA CLAVE: Si ya hay un video reproduciéndose y la tarjeta SIGUE dentro de la banda,
+    // ¡NO LA DETENGAS! Deja que siga reproduciendo con total fluidez mientras scrollea lento o toca la pantalla.
+    if (activeCard && isCardInBand(activeCard)) {
+      if (dwellTimer) {
+        clearTimeout(dwellTimer);
+        dwellTimer = null;
+      }
+      return;
+    }
+
+    // 2. Si la tarjeta activa ya salió de la banda (se fue hacia arriba o hacia abajo), apágala
+    if (activeCard && !isCardInBand(activeCard)) {
+      stopActive(false);
+    }
+
+    // 3. Programar la activación de la siguiente tarjeta que esté en la banda
+    if (dwellTimer) {
+      clearTimeout(dwellTimer);
+      dwellTimer = null;
+    }
+
     dwellTimer = setTimeout(() => {
       if (dlg && dlg.open) return;
 
-      const candidates = getEligibleCardsInFocus();
+      const candidates = getEligibleCardsInBand();
       if (!candidates.length) return;
 
-      // Variación orgánica: 25% de probabilidad de mantenerse estático en esa parada
-      // para que se sienta natural y no robótico en cada pausa
-      if (Math.random() < 0.25) return;
+      // Si la tarjeta activa sigue siendo una de las candidatas en la banda, mantenerla
+      if (activeCard && candidates.includes(activeCard)) {
+        return;
+      }
 
-      // Si hay 2 tarjetas en la fila (izq / der), se elige una al azar (50/50)
+      // Si hay 2 tarjetas en la fila dentro de la banda (columna izq / der), elegir una al azar (50/50)
       const chosenCard = candidates[Math.floor(Math.random() * candidates.length)];
-      if (!chosenCard) return;
-
-      const idx = Number(chosenCard.dataset.index);
-      const item = state.items[idx];
-      if (!item || !item.hasVideo) return;
-
-      let videoEl = chosenCard.querySelector('.card-video');
-      if (!videoEl) {
-        const videoUrl = item.videoUrl || (item.base + 'animacion.mp4');
-        videoEl = document.createElement('video');
-        videoEl.className = 'card-video media-fill';
-        videoEl.muted = true;
-        videoEl.loop = true;
-        videoEl.playsInline = true;
-        videoEl.setAttribute('muted', '');
-        videoEl.setAttribute('playsinline', '');
-        videoEl.setAttribute('webkit-playsinline', '');
-        videoEl.preload = 'auto';
-        videoEl.src = videoUrl;
-        const firstOverlay = chosenCard.querySelector('.overlay-top');
-        if (firstOverlay) {
-          chosenCard.insertBefore(videoEl, firstOverlay);
-        } else {
-          chosenCard.appendChild(videoEl);
-        }
-      }
-
-      activeCard = chosenCard;
-      activeVideo = videoEl;
-
-      const playPromise = videoEl.play();
-      if (playPromise !== undefined) {
-        playPromise.then(() => {
-          if (activeVideo === videoEl) {
-            videoEl.classList.add('playing');
-          }
-        }).catch(() => {});
-      }
-    }, 2300);
+      playCard(chosenCard);
+    }, 450);
   }
 
-  window.addEventListener('scroll', scheduleFocus, { passive: true });
+  window.addEventListener('scroll', handleScroll, { passive: true });
 
   const dlg = $('productPopup');
   if (dlg) {
     dlg.addEventListener('close', () => {
-      scheduleFocus();
+      setTimeout(handleScroll, 100);
     });
   }
 
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) stopActive(true);
-    else scheduleFocus();
+    else handleScroll();
   });
 
-  return { stopActive, scheduleFocus };
+  return { stopActive, scheduleFocus: handleScroll };
 }
 
 // ---------- Popup ----------
